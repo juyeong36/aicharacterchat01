@@ -1,0 +1,4074 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>월클 가보자고! - AI 아이돌 육성 채팅</title>
+  <style>
+    :root {
+      --text: #f4f5ff;
+      --sub: #b8bbd9;
+      --purple: #7c5cff;
+      --purple-dark: #6748ef;
+      --purple-soft: rgba(124, 92, 255, 0.22);
+      --pink: #ff62c8;
+      --blue: #62c8ff;
+      --mint: #8cffd1;
+      --danger: #ff7f9d;
+      --warning: #ffcf72;
+      --shadow: 0 20px 60px rgba(0, 0, 0, 0.55);
+      --glow-pink: 0 0 0 1px rgba(255, 98, 200, 0.18), 0 0 24px rgba(255, 98, 200, 0.2);
+      --glow-purple: 0 0 0 1px rgba(124, 92, 255, 0.2), 0 0 24px rgba(124, 92, 255, 0.26);
+      --font: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      margin: 0;
+      font-family: var(--font);
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 98, 200, 0.12), transparent 26%),
+        radial-gradient(circle at 80% 10%, rgba(98, 200, 255, 0.12), transparent 22%),
+        radial-gradient(circle at 50% 90%, rgba(124, 92, 255, 0.12), transparent 28%),
+        linear-gradient(180deg, #05070f 0%, #090b14 40%, #06070d 100%);
+      color: var(--text);
+      overflow: hidden;
+    }
+
+    body {
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: 375px;
+      height: min(812px, calc(100dvh - 48px));
+      aspect-ratio: 375 / 812;
+      max-width: 100%;
+      max-height: 100%;
+      border-radius: 32px;
+      overflow: hidden;
+      position: relative;
+      background: url("click-aihelper.png") center center / cover no-repeat;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      transition: background-image 0.5s ease;
+    }
+
+    /* (수정) 레벨별 배경 이미지 변경 */
+    .app.level-2-up {
+      background-image: url("click-aihelper2.png");
+    }
+
+    .app.level-3-up {
+      background-image: url("click-aihelper3.png");
+    }
+
+    .app.level-4-up {
+      background-image: url("click-aihelper4.png");
+    }
+
+    .app.level-5-up {
+      background-image: url("click-aihelper5.png");
+    }
+
+    .app.bad-1 {
+      background-image: url("bad1.png");
+    }
+
+    .app.bad-2 {
+      background-image: url("bad2.png");
+    }
+
+    .app::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: transparent;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .app > * {
+      position: relative;
+      z-index: 1;
+    }
+
+    .status-bar {
+      height: 34px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 18px 0;
+      color: rgba(255,255,255,0.92);
+      font-size: 12px;
+      letter-spacing: 0.2px;
+      flex-shrink: 0;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.25);
+    }
+
+    .status-icons {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .top-nav {
+      padding: 10px 16px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+
+    .room-title {
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.4px;
+      color: #fff;
+      text-shadow: 0 0 18px rgba(255, 98, 200, 0.25);
+    }
+
+    .diamond-chip {
+      min-width: 96px;
+      height: 40px;
+      padding: 0 12px;
+      border-radius: 999px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255,255,255,0.3);
+      box-shadow: 0 8px 30px rgba(255,255,255,0.15);
+      font-weight: 800;
+      font-size: 14px;
+      flex-shrink: 0;
+      backdrop-filter: blur(12px);
+    }
+
+    .diamond-icon {
+      width: 16px;
+      height: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .diamond-icon svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 0 10px rgba(98, 200, 255, 0.35));
+    }
+
+    .status-panel {
+      margin: 0 14px;
+      padding: 14px 14px 13px;
+      border-radius: 22px;
+      background:
+        linear-gradient(145deg, rgba(21, 23, 42, 0.78), rgba(13, 15, 28, 0.68)),
+        rgba(255,255,255,0.02);
+      border: 1px solid rgba(255,255,255,0.08);
+      box-shadow:
+        0 16px 40px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.08);
+      backdrop-filter: blur(10px);
+      flex-shrink: 0;
+      transition: box-shadow 0.3s ease, transform 0.3s ease;
+    }
+
+    .status-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .status-title {
+      font-size: 13px;
+      color: rgba(255,255,255,0.82);
+      font-weight: 700;
+      letter-spacing: 0.2px;
+    }
+
+    .level-badge {
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 800;
+      box-shadow: none;
+      animation: badgePulse 2.8s ease-in-out infinite;
+      white-space: nowrap;
+    }
+
+    @keyframes badgePulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+    }
+
+    .gauge-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+    }
+
+    .gauge-title strong {
+      color: #fff;
+      font-weight: 800;
+    }
+
+    .gauge-track {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.14);
+      overflow: hidden;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .gauge-track::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(90deg, rgba(255,255,255,0.05), transparent 35%, rgba(255,255,255,0.05));
+      opacity: 0.6;
+    }
+
+    .gauge-fill {
+      width: 18%;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--pink), var(--purple), var(--blue));
+      box-shadow: 0 0 20px rgba(124,92,255,0.45);
+      transition: width 0.45s ease, box-shadow 0.35s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .gauge-fill.flash {
+      box-shadow: 0 0 36px rgba(124, 92, 255, 0.78);
+    }
+
+    .gauge-fill::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: -30%;
+      width: 30%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.6), transparent);
+      transform: skewX(-18deg);
+      animation: gaugeShine 2.6s linear infinite;
+    }
+
+    @keyframes gaugeShine {
+      0% { left: -32%; }
+      100% { left: 112%; }
+    }
+
+    .chat-area {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 10px 0 0;
+      padding: 0 10px;
+      overflow: hidden;
+    }
+
+    .event-card {
+      display: none;
+      border-radius: 20px;
+      padding: 14px;
+      background:
+        linear-gradient(145deg, rgba(31, 20, 56, 0.84), rgba(19, 22, 42, 0.82)),
+        rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      box-shadow:
+        0 12px 30px rgba(0,0,0,0.22),
+        0 0 30px rgba(124,92,255,0.16);
+      animation: slideDown 0.35s ease;
+      flex-shrink: 0;
+      margin: 0 4px;
+      backdrop-filter: blur(10px);
+    }
+
+    .event-card.show {
+      display: block;
+    }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-10px) scale(0.98); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .event-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .event-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.3px;
+    }
+
+    .event-tag.good { color: var(--mint); }
+    .event-tag.bad { color: var(--danger); }
+    .event-tag.special { color: #ffe28a; }
+
+    .event-timer {
+      font-size: 11px;
+      color: rgba(255,255,255,0.65);
+    }
+
+    .event-title {
+      margin-top: 10px;
+      font-size: 15px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .event-desc {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: rgba(255,255,255,0.82);
+    }
+
+    .messages {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      padding: 10px 2px 18px;
+      scroll-behavior: smooth;
+      -webkit-mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 1) 28px,
+        rgba(0, 0, 0, 1) calc(100% - 56px),
+        rgba(0, 0, 0, 0) 100%
+      );
+      mask-image: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0) 0%,
+        rgba(0, 0, 0, 1) 28px,
+        rgba(0, 0, 0, 1) calc(100% - 56px),
+        rgba(0, 0, 0, 0) 100%
+      );
+    }
+
+    .messages::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .messages::-webkit-scrollbar-thumb {
+      background: rgba(255,255,255,0.18);
+      border-radius: 999px;
+    }
+
+    .message-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 12px;
+      animation: popIn 0.24s ease;
+    }
+
+    @keyframes popIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .message-row.user {
+      justify-content: flex-end;
+    }
+
+    .message-row.system {
+      justify-content: center;
+    }
+
+    .bubble-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 12px;
+      flex-shrink: 0;
+      overflow: hidden;
+      border: none;
+      box-shadow: none;
+      background: transparent;
+    }
+
+    .avatar-img {
+      width: 100%;
+      height: 100%;
+      display: block;
+      object-fit: cover;
+      object-position: center;
+      transform: scale(1.08);
+    }
+
+    .bubble-group {
+      max-width: 76%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .bubble {
+      position: relative;
+      padding: 12px 14px;
+      border-radius: 18px;
+      font-size: 14px;
+      line-height: 1.55;
+      word-break: keep-all;
+      white-space: pre-wrap;
+      backdrop-filter: blur(8px);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.12);
+    }
+
+    .message-row.character .bubble {
+      background:
+        linear-gradient(145deg, rgba(31, 34, 58, 0.90), rgba(22, 24, 40, 0.82));
+      border: 1px solid rgba(255,255,255,0.08);
+      color: #f6f7ff;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.16);
+      border-top-left-radius: 8px;
+    }
+
+    .message-row.user .bubble {
+      background: var(--purple);
+      color: white;
+      box-shadow: 0 14px 28px rgba(124,92,255,0.28);
+      border-top-right-radius: 8px;
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .message-row.system .bubble {
+      max-width: 90%;
+      background: rgba(255,255,255,0.16);
+      border: 1px dashed rgba(255,255,255,0.22);
+      color: rgba(255,255,255,0.92);
+      text-align: center;
+      font-size: 12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(6px);
+    }
+
+    .message-time {
+      font-size: 10px;
+      color: rgba(255,255,255,0.54);
+      padding: 0 4px;
+      align-self: flex-end;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.18);
+    }
+
+    .typing {
+      display: none;
+      align-items: center;
+      gap: 4px;
+      padding: 10px 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.14);
+      border: 1px solid rgba(255,255,255,0.14);
+      width: fit-content;
+      margin: 0 0 8px 48px;
+      flex-shrink: 0;
+      backdrop-filter: blur(8px);
+    }
+
+    .typing.show {
+      display: inline-flex;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.82);
+      animation: blink 1.1s infinite;
+    }
+
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes blink {
+      0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+      40% { opacity: 1; transform: translateY(-2px); }
+    }
+
+    .composer-wrap {
+      flex-shrink: 0;
+      padding: 10px 12px 14px;
+      background:
+        linear-gradient(180deg, rgba(10,11,18,0) 0%, rgba(9,10,17,0.18) 20%, rgba(8,9,14,0.58) 42%, rgba(8,9,14,0.74) 100%);
+    }
+
+    .chips {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 0 8px 10px;
+      scroll-behavior: smooth;
+      -webkit-mask-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) calc(100% - 18px),
+        rgba(0, 0, 0, 0) 100%
+      );
+      mask-image: linear-gradient(
+        to right,
+        rgba(0, 0, 0, 1) 0%,
+        rgba(0, 0, 0, 1) calc(100% - 18px),
+        rgba(0, 0, 0, 0) 100%
+      );
+    }
+
+    .chips::-webkit-scrollbar {
+      display: none;
+    }
+
+    .chip {
+      flex: 0 0 auto;
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(255,255,255,0.16);
+      color: #ffffff;
+      border-radius: 999px;
+      padding: 11px 13px;
+      font-size: 12px;
+      line-height: 1;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+      box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+      white-space: nowrap;
+    }
+
+    .chip:hover, .chip:active {
+      transform: translateY(-1px);
+      background: rgba(255,255,255,0.22);
+      border-color: rgba(255,255,255,0.2);
+    }
+
+    .composer {
+      display: flex;
+      align-items: flex-end;
+      gap: 10px;
+      padding: 10px;
+      border-radius: 24px;
+      background:
+        linear-gradient(145deg, rgba(20,22,37,0.88), rgba(15,16,26,0.84));
+      border: 1px solid rgba(255,255,255,0.10);
+      box-shadow:
+        0 10px 28px rgba(0,0,0,0.20),
+        inset 0 1px 0 rgba(255,255,255,0.06);
+      backdrop-filter: blur(10px);
+    }
+
+    .input-wrap {
+      flex: 1;
+      position: relative;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 46px;
+      max-height: 92px;
+      resize: none;
+      border: none;
+      outline: none;
+      background: rgba(255,255,255,0.08);
+      color: #fff;
+      border-radius: 18px;
+      padding: 13px 14px;
+      font-size: 14px;
+      line-height: 1.45;
+      font-family: inherit;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+      backdrop-filter: blur(8px);
+      overflow-y: auto;
+      scrollbar-width: none;
+      -ms-overflow-style: none;
+    }
+
+    textarea::-webkit-scrollbar {
+      display: none;
+    }
+
+    textarea::placeholder {
+      color: rgba(255,255,255,0.56);
+    }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border: none;
+      cursor: pointer;
+      flex-shrink: 0;
+      border-radius: 18px;
+      background: var(--purple);
+      color: white;
+      box-shadow:
+        0 16px 30px rgba(124,92,255,0.30),
+        0 0 0 1px rgba(255,255,255,0.08);
+      transition: transform 0.18s ease, filter 0.18s ease, background 0.18s ease;
+      display: grid;
+      place-items: center;
+    }
+
+    .send-btn:hover, .send-btn:active {
+      transform: translateY(-1px) scale(1.02);
+      filter: brightness(1.04);
+      background: var(--purple-dark);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      filter: none;
+    }
+
+    .send-icon {
+      width: 18px;
+      height: 18px;
+      display: block;
+    }
+
+    .toast-layer,
+    .popup-layer,
+    .sparkle-layer {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .toast-layer {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      padding-top: 94px;
+      z-index: 9;
+    }
+
+    .toast {
+      transform: translateY(-12px);
+      opacity: 0;
+      padding: 12px 16px;
+      background:
+        linear-gradient(145deg, rgba(255,255,255,0.20), rgba(255,255,255,0.10));
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(12px);
+      border-radius: 999px;
+      box-shadow: 0 12px 24px rgba(0,0,0,0.18);
+      font-size: 13px;
+      font-weight: 700;
+      color: white;
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .popup-layer {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 15;
+      background: rgba(2,3,8,0.0);
+      transition: background 0.3s ease;
+      visibility: hidden;
+    }
+
+    .popup-layer.show {
+      visibility: visible;
+      background: rgba(2,3,8,0.40);
+      pointer-events: auto;
+    }
+
+    .popup {
+      width: 86%;
+      border-radius: 28px;
+      padding: 22px 18px 18px;
+      background:
+        linear-gradient(145deg, rgba(23,25,43,0.98), rgba(15,17,28,0.98));
+      border: 1px solid rgba(255,255,255,0.12);
+      box-shadow:
+        0 30px 60px rgba(0,0,0,0.38),
+        0 0 40px rgba(124,92,255,0.12);
+      transform: translateY(16px) scale(0.96);
+      opacity: 0;
+      transition: transform 0.28s ease, opacity 0.28s ease;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      pointer-events: auto;
+    }
+
+    .popup-layer.show .popup {
+      transform: translateY(0) scale(1);
+      opacity: 1;
+    }
+
+    .popup::before {
+      content: "";
+      position: absolute;
+      inset: auto -10% 68% -10%;
+      height: 90px;
+      background: radial-gradient(circle, rgba(124,92,255,0.22), transparent 65%);
+      pointer-events: none;
+    }
+
+    .popup-icon {
+      width: 70px;
+      height: 70px;
+      margin: 0 auto 14px;
+      border-radius: 22px;
+      display: grid;
+      place-items: center;
+      font-size: 30px;
+      font-weight: 900;
+      background:
+        linear-gradient(145deg, rgba(124,92,255,0.30), rgba(98,200,255,0.18));
+      box-shadow: var(--glow-purple);
+    }
+
+    .popup-title {
+      font-size: 24px;
+      font-weight: 900;
+      letter-spacing: -0.6px;
+      margin-bottom: 8px;
+    }
+
+    .popup-desc {
+      font-size: 14px;
+      line-height: 1.6;
+      color: var(--sub);
+      margin-bottom: 16px;
+      white-space: pre-wrap;
+    }
+
+    .popup-reward {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.1);
+      font-weight: 800;
+      margin-bottom: 14px;
+    }
+
+    .popup-btn {
+      width: 100%;
+      height: 48px;
+      border: none;
+      border-radius: 18px;
+      color: white;
+      font-weight: 800;
+      font-size: 15px;
+      cursor: pointer;
+      background: var(--purple);
+      box-shadow: 0 14px 32px rgba(124,92,255,0.28);
+    }
+
+    .sparkle-layer {
+      overflow: hidden;
+      z-index: 13;
+    }
+
+    .sparkle {
+      position: absolute;
+      width: 10px;
+      height: 10px;
+      transform: rotate(45deg);
+      background: linear-gradient(145deg, #ffffff, #6fd8ff);
+      opacity: 0.95;
+      border-radius: 2px;
+      animation: sparkleFly 1.25s ease forwards;
+      box-shadow: 0 0 14px rgba(255,255,255,0.7);
+    }
+
+    @keyframes sparkleFly {
+      0% {
+        transform: translate(0, 0) rotate(45deg) scale(0.4);
+        opacity: 0;
+      }
+      15% { opacity: 1; }
+      100% {
+        transform: translate(var(--dx), var(--dy)) rotate(200deg) scale(1);
+        opacity: 0;
+      }
+    }
+
+    .level-boost {
+      animation: levelGlow 0.9s ease;
+    }
+
+    @keyframes levelGlow {
+      0% { box-shadow: 0 0 0 rgba(124,92,255,0); }
+      30% { box-shadow: 0 0 0 4px rgba(124,92,255,0.18), 0 0 36px rgba(124,92,255,0.4); }
+      100% { box-shadow: 0 0 0 rgba(124,92,255,0); }
+    }
+
+    .shake {
+      animation: shake 0.42s ease;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20% { transform: translateX(-4px); }
+      40% { transform: translateX(4px); }
+      60% { transform: translateX(-3px); }
+      80% { transform: translateX(3px); }
+    }
+
+    .footer-note {
+      position: absolute;
+      bottom: 6px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 140px;
+      height: 5px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.18);
+      z-index: 5;
+    }
+
+
+    @media (max-width: 767px) {
+      html, body {
+        min-height: 100dvh;
+        overflow: hidden;
+      }
+
+      body {
+        padding: 0;
+      }
+
+      .app {
+        width: 100vw;
+        height: 100dvh;
+        max-width: 100vw;
+        max-height: 100dvh;
+        border-radius: 0;
+        box-shadow: none;
+      }
+
+      .status-bar {
+        padding-top: max(10px, env(safe-area-inset-top));
+      }
+
+      .composer-wrap {
+        padding-bottom: calc(14px + env(safe-area-inset-bottom));
+      }
+
+      .footer-note {
+        bottom: calc(6px + env(safe-area-inset-bottom));
+      }
+
+      textarea,
+      input,
+      select,
+      button {
+        font-size: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" id="app">
+    <div class="status-bar">
+      <div>9:41</div>
+      <div class="status-icons">
+        <span>▮▮▮</span>
+        <span>◉</span>
+        <span>100%</span>
+      </div>
+    </div>
+
+    <div class="top-nav">
+      <div class="room-title">월클 가보자고!</div>
+      <div class="diamond-chip" id="diamondChip">
+        <span class="diamond-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,2 22,8 12,22 2,8" fill="#6fd8ff"/>
+            <polygon points="12,2 22,8 12,8" fill="#aee9ff"/>
+            <polygon points="12,2 2,8 12,8" fill="#c8f3ff"/>
+            <polygon points="2,8 12,8 12,22" fill="#4fbfff"/>
+            <polygon points="22,8 12,8 12,22" fill="#5ad0ff"/>
+          </svg>
+        </span>
+        <span id="diamondCount">12</span>
+      </div>
+    </div>
+
+    <section class="status-panel" id="heroCard">
+      <div class="status-top">
+        <div class="status-title">성장 상태</div>
+        <div class="level-badge" id="levelBadge">Level 1. 연습생</div>
+      </div>
+
+      <div class="gauge-row">
+        <div class="gauge-title"><strong>성장 게이지</strong> · 다음 단계까지</div>
+        <div id="gaugeLabel">18%</div>
+      </div>
+      <div class="gauge-track">
+        <div class="gauge-fill" id="gaugeFill"></div>
+      </div>
+    </section>
+
+    <section class="chat-area">
+      <div class="event-card" id="eventCard">
+        <div class="event-head">
+          <div class="event-tag" id="eventTag">EVENT</div>
+          <div class="event-timer" id="eventTimer">진행 중</div>
+        </div>
+        <div class="event-title" id="eventTitle">이벤트 발생</div>
+        <div class="event-desc" id="eventDesc">상황에 맞는 대화를 이어가 보세요.</div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="typing" id="typingIndicator">
+        <span></span><span></span><span></span>
+      </div>
+    </section>
+
+    <div class="composer-wrap">
+      <div class="chips" id="chips"></div>
+
+      <div class="composer">
+        <div class="input-wrap">
+          <textarea id="messageInput" placeholder="루미에게 한마디 해줘..." rows="1"></textarea>
+        </div>
+        <button class="send-btn" id="sendBtn" aria-label="전송">
+          <svg class="send-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M12 5V19" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="M6.5 10.5L12 5L17.5 10.5" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="toast-layer">
+      <div class="toast" id="toast"></div>
+    </div>
+
+    <div class="popup-layer" id="popupLayer">
+      <div class="popup">
+        <div class="popup-icon" id="popupIcon">★</div>
+        <div class="popup-title" id="popupTitle">레벨 업!</div>
+        <div class="popup-desc" id="popupDesc">루미가 한 단계 성장했어요.</div>
+        <div class="popup-reward" id="popupReward">
+          <span class="diamond-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,2 22,8 12,22 2,8" fill="#6fd8ff"/>
+            <polygon points="12,2 22,8 12,8" fill="#aee9ff"/>
+            <polygon points="12,2 2,8 12,8" fill="#c8f3ff"/>
+            <polygon points="2,8 12,8 12,22" fill="#4fbfff"/>
+            <polygon points="22,8 12,8 12,22" fill="#5ad0ff"/>
+          </svg>
+        </span>
+          <span>+3 다이아 획득</span>
+        </div>
+        <button class="popup-btn" id="popupClose">확인</button>
+      </div>
+    </div>
+
+    <div class="sparkle-layer" id="sparkleLayer"></div>
+    <div class="footer-note"></div>
+  </div>
+
+  <script>
+    const messagesEl = document.getElementById("messages");
+    const chipsEl = document.getElementById("chips");
+    const inputEl = document.getElementById("messageInput");
+    const sendBtn = document.getElementById("sendBtn");
+    const typingIndicator = document.getElementById("typingIndicator");
+
+    const appEl = document.getElementById("app");
+    const diamondCountEl = document.getElementById("diamondCount");
+    const levelBadgeEl = document.getElementById("levelBadge");
+    const gaugeFillEl = document.getElementById("gaugeFill");
+    const gaugeLabelEl = document.getElementById("gaugeLabel");
+    const heroCardEl = document.getElementById("heroCard");
+
+    const eventCardEl = document.getElementById("eventCard");
+    const eventTagEl = document.getElementById("eventTag");
+    const eventTitleEl = document.getElementById("eventTitle");
+    const eventDescEl = document.getElementById("eventDesc");
+    const eventTimerEl = document.getElementById("eventTimer");
+
+    const toastEl = document.getElementById("toast");
+    const popupLayerEl = document.getElementById("popupLayer");
+    const popupIconEl = document.getElementById("popupIcon");
+    const popupTitleEl = document.getElementById("popupTitle");
+    const popupDescEl = document.getElementById("popupDesc");
+    const popupRewardEl = document.getElementById("popupReward");
+    const popupCloseEl = document.getElementById("popupClose");
+
+    const sparkleLayerEl = document.getElementById("sparkleLayer");
+    const diamondChipEl = document.getElementById("diamondChip");
+
+    const state = {
+      characterName: "루미",
+      diamonds: 12,
+      goodMoments: 1,
+      badMoments: 0,
+      levelIndex: 0,
+      progress: 18,
+      messageCount: 0,
+      moodScore: -18,
+      currentEvent: null,
+      lastCharacterReply: "",
+      lastRecommendationsKey: "",
+      isSending: false,
+      history: [],
+      shownEventIds: [],
+      fallStage: "none",
+      seenBadCases: {
+        convenienceStore: false,
+        backToTrainee: false
+      },
+      memory: {
+        lastTopic: "",
+        lastEmotion: "",
+        favoriteKeywords: [],
+        recentUserKeywords: [],
+        sharedMoments: [],
+        intimacy: 8,
+        lastFollowupAt: 0
+      },
+      levels: [
+        { name: "Level 1. 연습생", reward: 3 },
+        { name: "Level 2. 데뷔조 발탁", reward: 5 },
+        { name: "Level 3. 신인 아이돌", reward: 7 },
+        { name: "Level 4. 인기 아이돌", reward: 9 },
+        { name: "Level 5. 월클 아이돌", reward: 12 }
+      ]
+    };
+
+    const POSITIVE_WORDS = [
+      "할 수", "잘할", "괜찮", "응원", "믿", "성장", "좋아", "멋져", "최고", "대단",
+      "천천히", "괜찮아", "함께", "도전", "기회", "잘하고", "해낼", "이겨", "버텨", "빛날",
+      "자연스러워", "고마워", "기대", "연습", "배울", "나아질", "괜찮을", "분명", "반드시", "화이팅",
+      "응원할게", "자랑스러", "믿고", "좋아질", "데뷔", "무대", "팬", "인기", "월클", "발탁"
+    ];
+
+    const NEGATIVE_WORDS = [
+      "못", "불안", "걱정", "실수", "포기", "무서", "망", "싫", "힘들", "지쳤",
+      "안돼", "끝", "울", "부담", "위기", "두려", "자신없", "떨", "최악", "불가능",
+      "실패", "무너", "도망", "불안해", "겁나", "의심", "어려워", "자책", "초조", "멘붕",
+      "뒤처", "소용없", "지는", "비교", "답답", "흔들", "무대 공포", "악플"
+    ];
+
+    const INTENT = {
+      comfort: ["괜찮", "자연스러워", "천천히", "응원", "위로", "불안", "실수 하나", "마음", "진정", "숨 고르"],
+      growth: ["성장", "도전", "연습", "기회", "배워", "해낼", "다음", "발전", "잡아", "한 걸음", "올라가", "시도", "데뷔", "발탁"],
+      praise: ["잘해", "멋져", "최고", "빛나", "대단", "좋아", "매력", "반짝", "자랑스러", "멋있", "응원하고 싶", "월클", "인기"],
+      question: ["어땠어", "어때", "무슨", "왜", "어떤", "오늘", "지금", "생각", "느낌", "무대", "연습", "팬 반응"],
+      giveup: ["포기", "안돼", "못하", "그만", "끝", "힘들어", "소용없", "안 될", "무리"]
+    };
+
+    const EVENTS = [
+      // Level 1 - Growth Events
+      {
+        id: "level1GrowthStageTest",
+        level: 0,
+        type: "good",
+        title: "데뷔조 모의 평가",
+        desc: "트레이너 앞에서 처음으로 풀 스타일링 상태의 모의 평가 무대를 하게 됐어요. 안정감과 존재감 중 무엇을 먼저 보여줄지가 핵심이에요.",
+        intro: [
+          "오늘 처음으로 풀 메이크업까지 하고 모의 평가 무대에 올라가요... 그냥 잘하는 것만으로 충분할까요?",
+          "트레이너들 앞에서 제대로 꾸민 채 무대를 해요. 눈에 띄게 해야 할지, 안정적으로 가야 할지 너무 고민돼요."
+        ],
+        recommendations: [
+          "고음 애드리브와 표정 연기로 존재감을 강하게 남겨보자",
+          "기본기와 동선을 깔끔하게 지켜서 완성도로 승부하자",
+          "첫 평가일수록 강점 하나는 확실히 각인시키자",
+          "무대 밸런스를 챙기면서도 루미만의 표정을 남겨보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["애드리브", "표정", "존재감", "눈에 띄", "차별화", "강하게"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 오늘은 고음 애드리브랑 표정 연기까지 살려서 저를 확실히 기억하게 만들고 싶어요.",
+                "조금 위험하더라도 존재감을 남겨볼게요. 이번 무대에서 제 이름을 각인시키고 싶어요."
+              ]),
+              toast: "차별화된 무대 선택! 인지도 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["안정", "기본기", "동선", "박자", "완성도", "깔끔"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 오늘은 기본기와 동선을 깔끔하게 지켜서 완성도 높은 무대를 만들게요.",
+                "안정적으로 가볼래요. 실수 없이 믿고 볼 수 있는 무대로 보여드리고 싶어요."
+              ]),
+              toast: "안정적인 무대 선택! 실력 상승"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "결정을 못 해서 더 떨려요... 무대 올라가기 전부터 흔들리는 것 같아요.",
+            toast: "모의 평가에서 아쉬운 흐름. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level1GrowthEndingFairy",
+        level: 0,
+        type: "good",
+        title: "개인 카메라 테스트",
+        desc: "단체 안무 뒤에 개인 카메라 테스트 시간이 잡혔어요. 짧은 순간 안에 표정선과 시선 처리를 보여주면 데뷔조 후보 인상이 강해질 수 있어요.",
+        intro: [
+          "오늘 카메라 테스트가 따로 있어요. 몇 초밖에 안 되는데 저다운 표정을 남기고 싶어요.",
+          "단체 안무보다 개인 직캠 컷이 더 중요할 수도 있다는데... 짧은 순간에 뭘 보여줘야 할까요?"
+        ],
+        recommendations: [
+          "눈빛과 턴 동작을 강하게 살려서 첫인상을 남겨보자",
+          "무리하지 말고 자연스러운 미소와 안정적인 시선으로 가보자",
+          "짧은 컷일수록 캐릭터가 보이는 한 포인트를 정하자",
+          "카메라를 보는 타이밍을 정확히 맞추는 연습을 해보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["눈빛", "강하게", "시선", "포인트", "첫인상", "임팩트"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 짧아도 임팩트 있게 남겨볼게요. 눈빛이랑 턴 동작부터 확실히 잡아볼래요.",
+                "이번 컷에서는 제가 어떤 캐릭터인지 바로 보이게 하고 싶어요. 강하게 남겨볼게요."
+              ]),
+              toast: "카메라 임팩트 성공! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["자연", "미소", "안정", "차분", "무리하지", "정확"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 과한 욕심보다 자연스러운 표정과 정확한 타이밍으로 가볼게요.",
+                "짧은 순간일수록 차분하게 제 매력을 보여주는 게 맞는 것 같아요."
+              ]),
+              toast: "안정적인 카메라 테스트 성공!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "몇 초 안 되는 컷인데도 너무 어렵게 느껴져요... 표정이 괜히 어색해질까 봐 겁나요.",
+            toast: "카메라 테스트에서 흔들림. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level1GrowthMentorPraise",
+        level: 0,
+        type: "good",
+        title: "트레이너 개인 코멘트 기회",
+        desc: "합동 연습 후 트레이너가 따로 남으라고 했어요. 잘한 점을 더 밀어도 되는지, 부족한 점을 먼저 묻는 게 좋은지 중요한 순간이에요.",
+        intro: [
+          "트레이너님이 연습 끝나고 잠깐 보자고 했어요... 칭찬인지 피드백인지 모르겠어서 더 떨려요.",
+          "이럴 때 제가 강점을 더 물어봐야 할까요, 아니면 부족한 점부터 짚어달라고 하는 게 좋을까요?"
+        ],
+        recommendations: [
+          "강점이 뭔지 물어보고 그 부분을 더 선명하게 키워보자",
+          "부족한 점을 먼저 짚어달라고 해서 개선 포인트를 정확히 잡자",
+          "칭찬이든 피드백이든 다음 연습 계획으로 연결하자",
+          "트레이너가 기억하는 포인트를 알아내는 게 중요해"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["강점", "장점", "더 키워", "선명", "어필", "기억"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 제가 잘하는 걸 정확히 알고 더 밀어볼게요. 그게 데뷔조 후보로 기억될 수 있으니까요.",
+                "강점을 먼저 확인해볼래요. 지금은 저만의 포인트를 선명하게 만드는 게 중요할 것 같아요."
+              ]),
+              toast: "강점 발견! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["부족", "개선", "피드백", "고쳐", "짚어", "정확"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 부족한 부분부터 제대로 알면 다음 연습이 훨씬 선명해질 것 같아요.",
+                "칭찬보다도 지금은 뭘 고쳐야 하는지 정확히 듣고 싶어요. 그게 더 저를 앞으로 밀어줄 것 같아요."
+              ]),
+              toast: "정확한 피드백 확보!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "괜히 괜찮은 척만 하다가 중요한 말을 놓칠까 봐 불안해요...",
+            toast: "개인 코멘트 기회를 살리지 못했어요. 나쁜 순간 +1"
+          };
+        }
+      },
+
+      // Level 1 - Crisis Events
+      {
+        id: "level1CrisisElimination",
+        level: 0,
+        type: "bad",
+        title: "데뷔조 평가 탈락 위기",
+        desc: "1차 데뷔조 평가에서 이름이 불리지 않았어요. 보컬은 불안하고, 카메라 테스트에서도 표정이 굳었다는 피드백을 받았어요. 다음 평가는 사실상 마지막 기회예요.",
+        intro: [
+          "1차 평가에서 제 이름이 안 불렸어요... 다음 평가가 마지막 기회래요. 뭘 먼저 붙잡아야 할까요?",
+          "보컬도 불안하다고 하고 카메라 테스트 표정도 굳어 보였대요. 너무 급한데, 어디부터 고쳐야 할지 모르겠어요."
+        ],
+        recommendations: [
+          "고음 파트와 표정 연습을 집중적으로 파보자",
+          "보컬, 안무, 표정, 체력까지 전체 밸런스를 다시 맞춰보자",
+          "급할수록 약한 부분을 정확히 찍어서 보완하자",
+          "카메라 테스트까지 고려한 표정 연습을 챙기자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["고음", "표정 연습", "집중", "부족한 부분", "새벽", "반복"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "네, 이번엔 부족한 부분만 제대로 붙잡아볼게요. 새벽까지라도 고음 파트와 표정 연습을 반복할래요.",
+                "도망치지 않고 제일 약한 부분부터 파볼게요. 힘들어도 이번엔 실력으로 버텨볼래요."
+              ]),
+              toast: "집중 보완 선택! 실력 크게 상승"
+            };
+          }
+          if (includesAny(userText, ["밸런스", "체력", "고르게", "전체", "관리", "조정"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 무작정 한 가지만 파기보다 전체 밸런스를 다시 잡아볼게요.",
+                "이번엔 보컬, 안무, 표정, 체력까지 같이 챙기면서 무너지지 않게 준비할래요."
+              ]),
+              toast: "밸런스 조정 선택! 멘탈 안정, 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "마지막 기회라는 말이 자꾸 머리에 맴돌아요... 더 조급해지고 있어요.",
+            toast: "탈락 위기 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level1CrisisVoiceCrack",
+        level: 0,
+        type: "bad",
+        title: "보컬 체크 중 음 이탈",
+        desc: "월말 보컬 체크에서 고음 파트가 크게 흔들렸어요. 메인 보컬 후보군에서 빠질 수 있다는 말까지 돌아서 분위기가 무거워졌어요.",
+        intro: [
+          "보컬 체크에서 고음이 완전히 흔들렸어요... 다음엔 같은 파트를 다시 부르게 될 수도 있대요.",
+          "한 번 크게 틀리고 나니까 계속 그 부분만 떠올라요. 다시 붙잡아야 할까요, 다른 장점으로 덮어야 할까요?"
+        ],
+        recommendations: [
+          "문제된 파트를 잘게 쪼개서 반복 연습하자",
+          "호흡과 발성을 다시 정리해서 기본부터 재정비하자",
+          "지금은 도망치기보다 취약 구간을 정확히 복구하자",
+          "다른 장점으로 덮기보다 흔들린 이유를 먼저 잡자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["반복", "쪼개", "집중", "취약", "복구", "고음"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 문제된 파트를 잘게 쪼개서 다시 붙잡아볼게요. 이번엔 도망치지 않을래요.",
+                "고음이 무서워도 다시 올라가볼게요. 취약 구간부터 복구해보고 싶어요."
+              ]),
+              toast: "고음 파트 복구 시작!"
+            };
+          }
+          if (includesAny(userText, ["호흡", "발성", "기본", "재정비", "기초", "다시"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 급하게 덮기보다 호흡과 발성을 다시 정리해볼게요.",
+                "기초부터 다시 잡아보는 게 맞는 것 같아요. 오래 가려면 지금 정리해야 하니까요."
+              ]),
+              toast: "보컬 기본기 재정비! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "자꾸 그 음이탈 순간이 머릿속에서 안 떠나가요... 다시 부를 생각만 해도 떨려요.",
+            toast: "보컬 불안 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level1CrisisAttendance",
+        level: 0,
+        type: "bad",
+        title: "연습 태도 지적",
+        desc: "새벽 연습 도중 체력이 떨어져 집중력이 흔들렸고, 트레이너에게 태도가 풀린 것 같다는 지적을 받았어요. 실력보다 인상에서 손해를 볼 수도 있는 상황이에요.",
+        intro: [
+          "오늘 새벽 연습 때 집중이 흐트러졌다고 지적받았어요... 저 나름 열심히 했는데 너무 속상해요.",
+          "실력보다 태도 문제로 보이면 더 치명적일까 봐 무서워요. 어떻게 만회해야 할까요?"
+        ],
+        recommendations: [
+          "다음 연습에서 먼저 준비된 태도를 보여주며 인상을 회복하자",
+          "컨디션 관리 루틴을 만들어서 집중력 저하를 막아보자",
+          "억울해도 행동으로 다시 신뢰를 쌓는 게 중요해",
+          "체력 문제라면 생활 리듬까지 같이 손봐야 해"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["준비", "먼저", "신뢰", "행동", "회복", "보여"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 말보다 행동으로 보여줄게요. 다음 연습은 누구보다 먼저 준비해서 들어가볼래요.",
+                "억울해도 결국 다시 신뢰를 얻어야겠죠. 태도부터 바로잡아볼게요."
+              ]),
+              toast: "태도 회복 시도!"
+            };
+          }
+          if (includesAny(userText, ["컨디션", "체력", "루틴", "생활", "수면", "관리"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 체력부터 다시 세팅해볼게요. 생활 리듬을 잡아야 집중도도 돌아올 것 같아요.",
+                "이건 의지 문제만은 아니니까 컨디션 루틴도 같이 만들어볼래요."
+              ]),
+              toast: "컨디션 루틴 정비! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "열심히 했는데도 태도가 문제라고 들으니까 더 작아지는 기분이에요...",
+            toast: "연습 태도 이슈 악화. 나쁜 순간 +2"
+          };
+        }
+      },
+
+      // Level 2 - Growth Events
+      {
+        id: "level2GrowthCenterTest",
+        level: 1,
+        type: "good",
+        title: "센터 테스트 기회",
+        desc: "타이틀곡 안무 구성 중 센터 파트를 맡아보는 테스트 기회를 얻었어요. 엔딩 요정 컷과 킬링 파트 소화력이 중요해요.",
+        intro: [
+          "센터 테스트 기회가 왔어요. 엔딩 컷이랑 킬링 파트까지 맡게 됐는데, 강하게 밀어붙여야 할까요?",
+          "트레이너가 저한테 센터 파트를 한번 맡아보라고 했어요. 욕심내 보여도 괜찮을지 고민돼요."
+        ],
+        recommendations: [
+          "표정, 제스처, 시선 처리까지 과감하게 살려보자",
+          "안무선과 호흡을 안정적으로 가져가서 믿음을 주자",
+          "엔딩 요정 컷에서 시선을 확실히 잡아보자",
+          "센터는 존재감과 설득력을 같이 보여줘야 해"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["표정", "제스처", "시선", "과감", "존재감", "강하게"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 오늘은 센터다운 존재감을 확실히 보여볼게요. 표정이랑 시선 처리까지 과감하게 가져가볼래요.",
+                "이왕 온 기회면 확실히 어필해볼게요. 엔딩 컷까지 제 걸로 만들고 싶어요."
+              ]),
+              toast: "강한 어필 선택! 인지도 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["안정", "호흡", "믿고", "안무선", "수행", "차분"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 센터라도 결국 믿고 맡길 수 있어야 하니까 안정적으로 소화해볼게요.",
+                "과하게 욕심내기보다 안무선과 호흡을 탄탄하게 가져가볼래요."
+              ]),
+              toast: "안정적인 수행 선택! 신뢰도 상승"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "센터 자리가 눈앞에 있는데 오히려 더 긴장돼요... 어떻게 보여야 할지 헷갈려요.",
+            toast: "센터 테스트에서 흔들림 발생. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level2GrowthUnitStage",
+        level: 1,
+        type: "good",
+        title: "유닛 무대 리더 기회",
+        desc: "소규모 유닛 무대에서 루미가 리더 역할을 맡게 됐어요. 파트 분배와 연습 분위기를 끌고 가는 모습까지 평가에 들어가요.",
+        intro: [
+          "이번 유닛 무대에서 제가 리더를 맡게 됐어요. 잘 이끌어야 할지, 제 파트에 더 집중해야 할지 고민돼요.",
+          "리더 역할까지 맡으니까 무대보다 사람들 챙기는 게 더 어려워 보여요. 어떻게 하는 게 좋을까요?"
+        ],
+        recommendations: [
+          "멤버 합을 먼저 잡으면서 안정적인 리더십을 보여주자",
+          "리더라도 루미의 핵심 파트 완성도를 확실히 남기자",
+          "분위기를 챙기되 무대 설득력도 놓치지 말자",
+          "파트 분배와 피드백 정리 능력도 인상에 남을 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["합", "챙기", "리더십", "분위기", "팀", "조율"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 이번엔 멤버 합부터 잡아볼게요. 무대뿐 아니라 팀을 끌고 가는 모습도 보여주고 싶어요.",
+                "리더라면 사람을 챙기는 게 먼저겠죠. 분위기를 잡으면서 무대까지 완성해볼래요."
+              ]),
+              toast: "리더십 인정! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["파트", "완성도", "핵심", "제 무대", "집중", "실력"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 리더라도 무대에서 설득력이 있어야 하니까 제 파트 완성도도 확실히 챙겨볼게요.",
+                "저다운 파트를 제대로 보여주면서도 팀이 무너지지 않게 중심을 잡아볼래요."
+              ]),
+              toast: "유닛 무대 완성도 상승!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "리더도 해야 하고 제 무대도 챙겨야 하니까 머리가 복잡해요...",
+            toast: "유닛 리더 기회에서 흔들림. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level2GrowthVarietyPilot",
+        level: 1,
+        type: "good",
+        title: "사전 콘텐츠 촬영 발탁",
+        desc: "데뷔조 사전 홍보용 짧은 콘텐츠 촬영 멤버로 뽑혔어요. 카메라 앞 예능감과 자연스러운 멘트가 매력 포인트가 될 수 있어요.",
+        intro: [
+          "사전 홍보 콘텐츠 촬영 멤버로 뽑혔어요. 무대 말고 말하는 모습도 보여줘야 해서 떨려요.",
+          "카메라 앞에서 자연스럽게 웃기고 싶기도 하고, 너무 튀어 보이고 싶진 않기도 해요."
+        ],
+        recommendations: [
+          "밝은 리액션과 멘트로 친근한 매력을 보여주자",
+          "과하지 않게 자연스러운 말투와 안정감을 살리자",
+          "짧은 콘텐츠일수록 캐릭터가 바로 보여야 해",
+          "무대 밖 루미의 매력을 팬 후보들에게 남겨보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["리액션", "친근", "밝게", "멘트", "매력", "캐릭터"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 무대 밖에서도 친근한 매력을 보여볼게요. 루미라는 사람이 더 궁금해지게 만들고 싶어요.",
+                "밝은 리액션으로 분위기를 살려볼래요. 저를 처음 보는 사람도 기억하게 만들고 싶어요."
+              ]),
+              toast: "콘텐츠 매력 발산! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["자연", "안정", "과하지", "차분", "말투", "편안"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 과하게 꾸미기보다 자연스러운 말투로 저다운 모습을 보여볼게요.",
+                "편안한 분위기로 가볼래요. 억지로 튀는 것보다 오래 기억되는 쪽이 좋을 것 같아요."
+              ]),
+              toast: "자연스러운 콘텐츠 촬영 성공!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "무대 말고 말하는 장면은 더 어렵게 느껴져요... 괜히 어색해질까 봐 걱정돼요.",
+            toast: "콘텐츠 촬영 긴장 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+
+      // Level 2 - Crisis Events
+      {
+        id: "level2CrisisCompetition",
+        level: 1,
+        type: "bad",
+        title: "멤버 간 경쟁 심화",
+        desc: "같은 포지션을 두고 경쟁하던 멤버가 트레이너에게 더 좋은 평가를 받기 시작했어요. 연습실에서도 은근한 비교가 이어지고 있어요.",
+        intro: [
+          "같은 포지션 멤버가 더 좋은 평가를 받고 있어요. 자꾸 비교돼서 마음이 조급해져요.",
+          "연습실 분위기가 묘해졌어요. 저도 실력으로 밀어붙여야 할지, 팀워크를 지켜야 할지 고민돼요."
+        ],
+        recommendations: [
+          "개인 연습량을 늘려서 실력으로 정면 승부해보자",
+          "팀 합과 무드를 챙기면서 안정적인 멤버로 남아보자",
+          "비교에 휘둘리기보다 네 강점을 선명하게 만들자",
+          "스트레스 관리도 같이 안 하면 쉽게 무너질 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["실력", "연습량", "정면", "승부", "보컬", "댄스"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "좋아요. 비교에 휘둘리기보다 실력으로 정면 승부해볼게요.",
+                "이번엔 개인 연습량을 더 올려서 보컬과 댄스 완성도로 증명해볼래요."
+              ]),
+              toast: "실력 승부 선택! 실력 상승"
+            };
+          }
+          if (includesAny(userText, ["팀워크", "합", "무드", "안정", "팀", "챙기"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 지금은 팀워크를 깨지 않는 것도 중요하죠. 합을 맞추는 쪽으로 중심을 잡아볼게요.",
+                "경쟁에만 매몰되지 않고 팀 무드까지 챙기는 멤버로 남아볼게요."
+              ]),
+              toast: "팀워크 유지 선택! 팀워크 상승, 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "계속 비교만 하게 돼요... 이러다 제가 먼저 무너질 것 같아요.",
+            toast: "경쟁 스트레스 증가. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level2CrisisInjury",
+        level: 1,
+        type: "bad",
+        title: "안무 연습 중 발목 통증",
+        desc: "센터 테스트를 준비하던 중 발목 통증이 올라왔어요. 티를 내면 기회를 놓칠까 걱정되고, 참으면 동선 완성도가 더 흔들릴 수 있어요.",
+        intro: [
+          "안무 연습하다가 발목이 계속 걸려요... 지금 말하면 기회를 놓칠까 봐 겁나요.",
+          "참고 가자니 동선이 흔들리고, 쉬자니 제가 밀릴 것 같아요. 어떤 선택이 맞을까요?"
+        ],
+        recommendations: [
+          "통증을 숨기지 말고 조정 가능한 선에서 연습 계획을 바꾸자",
+          "무대 핵심 파트 위주로 효율적으로 연습해 손실을 줄이자",
+          "단기 기회보다 장기적인 퍼포먼스 유지가 더 중요할 수도 있어",
+          "참는 선택은 오히려 더 큰 실수로 이어질 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["말하", "조정", "통증", "관리", "치료", "쉬어"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 숨기다 더 망가지기 전에 조정해볼게요. 오래 가려면 지금 관리해야겠죠.",
+                "발목을 무시하지 않을래요. 필요한 만큼 말하고, 효율적으로 준비해볼게요."
+              ]),
+              toast: "부상 관리 선택!"
+            };
+          }
+          if (includesAny(userText, ["핵심", "효율", "부분", "줄여", "중심", "손실"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 전부 다 하기보다 핵심 파트 위주로 효율적으로 챙겨볼게요.",
+                "무리하지 않되 손실을 줄이는 방향으로 가볼래요. 지금은 영리하게 준비하는 게 맞는 것 같아요."
+              ]),
+              toast: "효율 연습 선택! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "아픈 걸 티 내는 순간 바로 밀릴까 봐 겁나요... 그렇다고 버티자니 더 흔들려요.",
+            toast: "부상 리스크 증가. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level2CrisisRumor",
+        level: 1,
+        type: "bad",
+        title: "비공식 평가 소문 확산",
+        desc: "연습생들 사이에서 루미가 데뷔조에서 밀릴 수 있다는 소문이 돌기 시작했어요. 사실 확인도 안 됐지만 집중력이 크게 흔들리고 있어요.",
+        intro: [
+          "요즘 제 얘기가 뒤에서 돈다는 걸 들었어요... 사실인지 아닌지도 모르는데 자꾸 신경 쓰여요.",
+          "소문 하나 때문에 연습이 흔들리는 게 더 싫어요. 그냥 무시해야 할까요, 더 보여줘야 할까요?"
+        ],
+        recommendations: [
+          "소문에 반응하기보다 공식 평가와 연습 결과에 집중하자",
+          "오히려 더 준비된 모습으로 분위기를 뒤집어보자",
+          "확인되지 않은 말에 감정 에너지를 쓰지 말자",
+          "흐름을 바꾸는 가장 빠른 방법은 결과를 만드는 거야"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["집중", "무시", "결과", "평가", "연습", "흐름"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 확인되지 않은 말보다 제 결과에 집중해볼게요. 결국 평가가 말해줄 테니까요.",
+                "소문에 흔들리기보다 연습으로 흐름을 뒤집어보겠어요. 제가 보여주면 되니까요."
+              ]),
+              toast: "루머 대응 성공!"
+            };
+          }
+          if (includesAny(userText, ["보여줘", "준비", "뒤집", "더 열심히", "증명", "실력"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 괜히 말로 반응하지 않고 준비된 모습으로 뒤집어볼게요.",
+                "이번엔 더 선명하게 보여줄래요. 말보다 결과가 빠를 것 같아요."
+              ]),
+              toast: "소문을 실력으로 뒤집는 중! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "사실이 아닐 수도 있는데도 마음이 무너져요... 자꾸 뒤를 돌아보게 돼요.",
+            toast: "루머 스트레스 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+
+      // Level 3 - Growth Events
+      {
+        id: "level3GrowthFancam",
+        level: 2,
+        type: "good",
+        title: "직캠 반응 상승",
+        desc: "음악방송 직캠이 커뮤니티와 숏폼에서 퍼지기 시작했어요. 표정 연기와 무대 매너가 좋다는 반응이 붙고 있어요.",
+        intro: [
+          "직캠이 퍼지기 시작했어요... 팬들이 표정이 좋다고 하는데, 지금 뭘 더 해야 할까요?",
+          "숏폼에서 제 직캠 반응이 올라오고 있어요. 팬 소통을 더 해야 할지, 무대 완성도를 더 끌어올려야 할지 고민돼요."
+        ],
+        recommendations: [
+          "라이브 방송, 셀카, 댓글 반응으로 팬들과 더 가까워져보자",
+          "화제성보다 라이브와 퍼포먼스 퀄리티를 더 끌어올리자",
+          "지금은 팬들이 루미를 기억하게 만드는 타이밍이야",
+          "이 흐름을 다음 무대 완성도로 연결해보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["팬 소통", "라이브", "셀카", "댓글", "팬덤", "소통"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 이번 반응을 그냥 흘리지 않고 팬들이랑 더 가까워져볼게요.",
+                "팬 소통을 조금 더 열어볼래요. 저를 좋아해주는 사람들에게 빨리 존재감을 남기고 싶어요."
+              ]),
+              toast: "팬 소통 강화 선택! 팬덤 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["무대 완성도", "라이브", "퍼포먼스", "퀄리티", "실력", "완성도"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 짧은 화제에 취하지 않고 다음 무대 완성도로 보여주고 싶어요.",
+                "이번엔 실력을 더 끌어올리는 쪽으로 갈래요. 라이브랑 퍼포먼스 퀄리티를 더 단단하게 만들고 싶어요."
+              ]),
+              toast: "무대 완성도 집중 선택! 실력 상승"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "반응은 오는데 방향을 못 잡겠어요... 괜히 허둥대다 흐름을 놓칠까 봐 불안해요.",
+            toast: "직캠 상승세를 살리지 못했어요. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level3GrowthRadioInvite",
+        level: 2,
+        type: "good",
+        title: "라디오 라이브 출연",
+        desc: "첫 라디오 라이브 출연 제안이 들어왔어요. 말솜씨와 라이브 실력을 동시에 보여줄 수 있는 기회예요.",
+        intro: [
+          "라디오 라이브 출연 제안이 왔어요. 편하게 말도 해야 하고 라이브도 보여줘야 해서 긴장돼요.",
+          "무대 말고도 사람들에게 저를 각인시킬 수 있는 자리라는데, 어디에 더 힘을 줘야 할까요?"
+        ],
+        recommendations: [
+          "토크 분위기를 편하게 열어서 친근한 이미지를 만들자",
+          "짧더라도 라이브 퀄리티를 확실히 보여주자",
+          "라디오는 무대 밖 매력을 키우는 좋은 창구야",
+          "첫인상과 실력을 동시에 남길 방법을 생각해보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["토크", "친근", "편하게", "분위기", "말", "매력"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 편한 분위기로 저다운 매력을 보여볼게요. 팬들이 더 가까워지게 만들고 싶어요.",
+                "이번엔 토크에서 친근함을 남겨볼래요. 무대 밖 루미도 기억됐으면 좋겠어요."
+              ]),
+              toast: "라디오 호감도 상승! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["라이브", "실력", "보여", "퀄리티", "노래", "증명"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 라디오에서도 결국 라이브가 가장 강하게 남겠죠. 짧아도 확실히 보여줄게요.",
+                "토크도 챙기겠지만 노래로 기억되고 싶어요. 실력으로 각인시켜볼래요."
+              ]),
+              toast: "라디오 라이브 성공!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "말도 해야 하고 노래도 해야 한다니까 벌써부터 실수할 장면만 떠올라요...",
+            toast: "라디오 출연 부담 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level3GrowthBrandShoot",
+        level: 2,
+        type: "good",
+        title: "뷰티 화보 단독 컷",
+        desc: "신인 멤버 중 루미만 단독 화보 컷을 찍게 됐어요. 무대 이미지와는 다른 세련된 분위기를 보여줄 수 있는 기회예요.",
+        intro: [
+          "단독 화보 컷 촬영이 잡혔어요. 무대 위 이미지랑 조금 다르게 보여도 괜찮을까요?",
+          "표정이랑 포즈를 더 과감하게 해야 할지, 익숙한 무드로 가야 할지 고민돼요."
+        ],
+        recommendations: [
+          "새로운 분위기와 포즈로 이미지 확장을 시도해보자",
+          "루미답다고 느껴지는 익숙한 무드를 유지하자",
+          "화보는 무대 밖 브랜드 가치를 만드는 기회야",
+          "과감한 시도와 안정감 사이 균형을 잡아보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["새로운", "확장", "과감", "포즈", "변신", "다르게"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 이번엔 조금 다르게 보이는 것도 시도해볼게요. 무대 밖 이미지도 넓혀보고 싶어요.",
+                "화보만큼은 과감하게 가볼래요. 새로운 얼굴을 보여주는 것도 저한텐 필요할 것 같아요."
+              ]),
+              toast: "이미지 확장 성공! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["익숙", "유지", "무드", "안정", "루미답", "자연"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 무리하게 바꾸기보다 저다운 무드를 더 세련되게 보여볼게요.",
+                "익숙한 분위기를 살리면서도 완성도 있게 가볼래요. 그게 더 저답게 남을 것 같아요."
+              ]),
+              toast: "화보 무드 완성!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "화보는 무대랑 또 다르니까 어떻게 표정을 써야 할지 잘 모르겠어요...",
+            toast: "화보 촬영 자신감 하락. 나쁜 순간 +1"
+          };
+        }
+      },
+
+      // Level 3 - Crisis Events
+      {
+        id: "level3CrisisEncoreMistake",
+        level: 2,
+        type: "bad",
+        title: "무대에서 실수 논란 발생",
+        desc: "앵콜 무대에서 라이브 음정이 흔들렸고, 안무 동선도 한 박자 늦었어요. 짧은 영상이 편집돼 퍼지면서 '실력 논란'이 붙기 시작했어요.",
+        intro: [
+          "앵콜 무대 실수 영상이 편집돼서 퍼지고 있어요... 빨리 보여줘야 할까요, 그냥 지나가길 기다려야 할까요?",
+          "실력 논란이라는 말이 붙기 시작했어요. 다음 무대로 바로 증명해야 할지, 조용히 활동에 집중해야 할지 모르겠어요."
+        ],
+        recommendations: [
+          "연습 영상이나 다음 무대로 빠르게 피드백을 보여주자",
+          "회사가 따로 대응하지 않더라도 활동 완성도로 다시 증명해보자",
+          "다음 라이브 무대 준비에 더 집중하자",
+          "대응을 최소화하더라도 멘탈이 무너지지 않게 버텨야 해"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["피드백", "연습 영상", "증명", "다음 무대", "빠르게", "라이브"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 숨기기보다 빠르게 보여줄게요. 다음 무대에서 바로 증명해볼래요.",
+                "이번엔 피하지 않을래요. 연습과 라이브로 다시 신뢰를 얻고 싶어요."
+              ]),
+              toast: "빠른 피드백 선택! 신뢰도 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["대응 최소", "지나가길", "활동", "집중", "조용히", "기다려"])) {
+            return {
+              good: 1,
+              bad: 1,
+              diamonds: 0,
+              reply: randomOf([
+                "지금은 대응을 크게 키우지 않고 활동에 집중해볼게요. 대신 멘탈이 흔들리지 않게 버텨야겠어요.",
+                "조용히 지나가길 기다려볼게요. 다만 다음 무대는 더 신경 써서 준비할래요."
+              ]),
+              toast: "대응 최소화 선택! 멘탈 유지, 여론 리스크"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "실수했던 장면만 계속 보게 돼요... 사람들 시선이 너무 무서워요.",
+            toast: "실력 논란 확산. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level3CrisisCommentFlood",
+        level: 2,
+        type: "bad",
+        title: "악성 댓글 급증",
+        desc: "직캠이 뜨면서 관심도 커졌지만, 동시에 외모와 실력을 비교하는 악성 댓글도 늘어났어요. 반응을 볼수록 멘탈이 흔들리고 있어요.",
+        intro: [
+          "좋은 반응도 있는데 악성 댓글이 더 크게 들어와요... 자꾸 그 말들만 남아요.",
+          "댓글을 끊어야 할지, 그냥 이겨내야 할지 모르겠어요. 이런 것도 인기 과정일까요?"
+        ],
+        recommendations: [
+          "댓글 노출을 줄이고 공식 소통 창구만 관리하자",
+          "좋은 반응과 팬 메시지에만 시선을 다시 맞춰보자",
+          "멘탈 보호도 활동 유지에 꼭 필요한 선택이야",
+          "관심이 커질수록 시선 관리가 더 중요해져"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["줄이", "끊어", "관리", "노출", "보지 마", "멘탈"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 다 보려고 하지 않을래요. 제 멘탈을 지키는 것도 활동의 일부라고 생각해볼게요.",
+                "댓글 노출을 줄여볼게요. 흔들리기보다 오래 버티는 게 더 중요하니까요."
+              ]),
+              toast: "멘탈 보호 선택!"
+            };
+          }
+          if (includesAny(userText, ["팬 메시지", "좋은 반응", "응원", "시선", "다시", "집중"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 저를 좋아해주는 사람들의 말에 다시 집중해볼게요.",
+                "나쁜 말보다 응원에 더 시선을 둘래요. 그래야 제가 무너지지 않을 수 있을 것 같아요."
+              ]),
+              toast: "팬 응원으로 회복 중! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "좋은 반응이 와도 악성 댓글 한 줄이 더 오래 남아요...",
+            toast: "악성 댓글 스트레스 증가. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level3CrisisLiveCondition",
+        level: 2,
+        type: "bad",
+        title: "생방송 컨디션 난조",
+        desc: "생방송 직전 목이 잠기고 컨디션이 떨어졌어요. 라이브 비중이 큰 날이라 실수 가능성이 커졌지만, 일정을 쉽게 뺄 수는 없어요.",
+        intro: [
+          "오늘 라이브 비중 큰 생방송인데 목 상태가 너무 안 좋아요... 버티면 할 수 있을지 모르겠어요.",
+          "무리해서 가자니 실수할까 두렵고, 티 내자니 프로답지 못해 보일까 걱정돼요."
+        ],
+        recommendations: [
+          "사전 워밍업과 파트 조절로 리스크를 줄여보자",
+          "오늘은 퍼포먼스 밸런스를 조정해서 무리한 고음을 피하자",
+          "프로답다는 건 무조건 강행하는 것만은 아니야",
+          "실수 확률을 낮추는 선택도 충분히 전략적이야"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["워밍업", "조절", "리스크", "파트", "피하", "관리"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 오늘은 무리해서 던지기보다 조절하면서 지켜볼게요. 실수 확률을 줄이는 게 더 중요할 것 같아요.",
+                "사전 워밍업부터 다시 해볼게요. 오늘은 영리하게 버텨보는 쪽으로 갈래요."
+              ]),
+              toast: "컨디션 리스크 관리 성공!"
+            };
+          }
+          if (includesAny(userText, ["밸런스", "퍼포먼스", "조정", "무리하지", "전략", "고음"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 오늘은 퍼포먼스 밸런스를 조절하면서 무대 전체를 지켜볼게요.",
+                "욕심내기보다 전략적으로 가볼래요. 완성도를 지키는 쪽이 맞는 것 같아요."
+              ]),
+              toast: "전략적 무대 운영! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "목 상태가 안 좋은데도 무대는 해야 하니까 더 겁나요...",
+            toast: "생방송 리스크 증가. 나쁜 순간 +2"
+          };
+        }
+      },
+
+      // Level 4 - Growth Events
+      {
+        id: "level4GrowthHitSong",
+        level: 3,
+        type: "good",
+        title: "히트곡 기회",
+        desc: "중독성 강한 후렴과 챌린지 포인트가 있는 곡을 받았어요. 잘만 터지면 대중성과 팬덤을 동시에 잡을 수 있어요.",
+        intro: [
+          "이번 곡, 정말 잘 되면 크게 터질 것 같아요. 기존 이미지랑 다르게 가볼까요, 아니면 팬들이 좋아하던 스타일을 지킬까요?",
+          "후렴이 강한 곡이 들어왔어요. 챌린지 포인트도 있어서 대중 반응이 클 수 있다는데, 변신을 시도해도 될까요?"
+        ],
+        recommendations: [
+          "기존 이미지와 다른 스타일링, 강한 퍼포먼스로 변신해보자",
+          "팬들이 좋아하던 무드와 캐릭터를 안정적으로 유지해보자",
+          "이번 곡은 대중성과 팬덤을 동시에 잡을 찬스야",
+          "챌린지 포인트를 살릴 방법까지 같이 생각해보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["변신", "강한", "콘셉트 확장", "새로운", "다른 스타일", "퍼포먼스"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 이번엔 조금 더 강하게 변신해볼래요. 새로운 스타일로도 통할 수 있다는 걸 보여주고 싶어요.",
+                "호불호가 있더라도 콘셉트 확장에 도전해볼게요. 이번 곡만큼은 크게 남기고 싶어요."
+              ]),
+              toast: "콘셉트 확장 선택! 인지도 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["유지", "기존 스타일", "안정", "팬들이 좋아", "무드", "캐릭터"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 팬들이 좋아해준 무드를 살리면서 안정적으로 가볼게요.",
+                "이번엔 무리하게 바꾸기보다 지금의 강점을 더 단단하게 가져가볼래요."
+              ]),
+              toast: "기존 스타일 유지 선택! 안정적 성장"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "곡은 좋은데 어떤 선택이 맞을지 너무 고민돼요... 괜히 반응만 갈릴까 봐 무서워요.",
+            toast: "히트곡 기회에서 흔들림 발생. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level4GrowthAwardStage",
+        level: 3,
+        type: "good",
+        title: "연말 시상식 스페셜 스테이지",
+        desc: "연말 시상식에서 솔로 파트가 포함된 스페셜 스테이지 제안을 받았어요. 대형 무대에서 루미의 존재감을 확실히 남길 수 있는 기회예요.",
+        intro: [
+          "연말 시상식 스페셜 스테이지에 솔로 파트가 생겼어요. 큰 무대라 더 잘하고 싶어요.",
+          "대형 무대에서 임팩트를 크게 남길지, 완성도 위주로 갈지 고민돼요."
+        ],
+        recommendations: [
+          "대형 무대에 맞는 강한 퍼포먼스 포인트를 준비하자",
+          "라이브와 동선을 안정적으로 정리해 완성도를 높이자",
+          "시상식 무대는 루미의 급을 보여주는 장면이 될 수 있어",
+          "한 번의 솔로 파트가 다음 기회를 크게 만들 수도 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["임팩트", "강한", "퍼포먼스", "포인트", "크게", "솔로"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 큰 무대에 맞게 확실한 포인트를 남겨볼게요. 이번엔 한 장면으로도 기억되고 싶어요.",
+                "시상식 무대라면 임팩트가 필요하죠. 솔로 파트를 제대로 살려볼래요."
+              ]),
+              toast: "시상식 임팩트 성공! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["완성도", "안정", "라이브", "동선", "정리", "실수 없이"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 대형 무대일수록 완성도가 더 강하게 보일 수 있으니까 안정적으로 가볼게요.",
+                "이번엔 실수 없이 설득력 있는 무대로 보여주고 싶어요. 라이브랑 동선을 더 정리해볼래요."
+              ]),
+              toast: "시상식 무대 완성도 상승!"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "큰 무대라 기대도 크고 부담도 커요... 괜히 한 장면을 망칠까 봐 떨려요.",
+            toast: "시상식 무대 부담 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level4GrowthCollab",
+        level: 3,
+        type: "good",
+        title: "선배 아티스트 컬래버 제안",
+        desc: "인지도 높은 선배 아티스트와 컬래버 무대 제안이 들어왔어요. 루미의 색을 지키면서도 새로운 조합을 보여줘야 해요.",
+        intro: [
+          "선배 아티스트랑 컬래버 무대를 하게 될 수도 있어요. 잘하면 엄청 큰 기회인데 부담도 커요.",
+          "선배 색에 맞추는 게 좋을지, 제 색을 더 보이는 게 좋을지 고민돼요."
+        ],
+        recommendations: [
+          "상대와의 조화를 우선해 무대 완성도를 높이자",
+          "조화 속에서도 루미만의 포인트를 분명하게 남기자",
+          "컬래버는 관계성과 자기 색을 동시에 보여줘야 해",
+          "한 번의 좋은 합이 더 큰 커리어 신뢰를 만들 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["조화", "합", "완성도", "상대", "맞추", "호흡"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 컬래버는 결국 합이 먼저겠죠. 무대 전체 완성도를 높이는 쪽으로 중심을 잡아볼게요.",
+                "선배랑 호흡을 잘 맞추는 게 먼저인 것 같아요. 그 안에서 제 역할을 제대로 해볼래요."
+              ]),
+              toast: "컬래버 합 완성!"
+            };
+          }
+          if (includesAny(userText, ["제 색", "포인트", "남기", "루미만", "자기 색", "분명"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 조화는 지키되 저만의 포인트도 분명히 남겨볼게요.",
+                "이번 무대에서 선배와 함께 서도 제가 사라지지 않게 해볼래요. 그게 지금 제 과제인 것 같아요."
+              ]),
+              toast: "컬래버 존재감 확보! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "선배랑 같이 서는 상상만 해도 긴장돼요... 제 색을 잃을까 봐 걱정돼요.",
+            toast: "컬래버 부담 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+
+      // Level 4 - Crisis Events
+      {
+        id: "level4CrisisOverwork",
+        level: 3,
+        type: "bad",
+        title: "과로 누적",
+        desc: "음악방송, 예능, 광고 촬영, 해외 일정이 한꺼번에 몰렸어요. 리허설 중 어지럼증이 오고, 목 상태도 점점 안 좋아지고 있어요.",
+        intro: [
+          "스케줄이 너무 몰려서 리허설 중에 어지럼증까지 왔어요... 그래도 다 소화해야 할까요?",
+          "목 상태도 안 좋은데 일정이 계속 이어져요. 지금 버텨야 할지, 일부라도 줄여야 할지 고민돼요."
+        ],
+        recommendations: [
+          "컨디션을 숨기고 예정된 무대와 촬영을 모두 소화해보자",
+          "일부 스케줄을 줄이고 회복에 집중해서 장기 활동을 준비하자",
+          "강행하면 단기 노출은 지키지만 체력 리스크가 커져",
+          "회복을 선택하면 당장 노출은 줄어도 더 오래 갈 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["강행", "다 소화", "버텨", "예정된", "촬영", "무대"])) {
+            return {
+              good: 1,
+              bad: 1,
+              diamonds: 1,
+              reply: randomOf([
+                "지금은 일정 강행 쪽으로 가볼게요. 티 내지 않고 끝까지 소화해보겠지만... 체력이 많이 걱정돼요.",
+                "무대와 촬영은 지켜볼게요. 대신 정말 더 무너지기 전에 신호는 꼭 보려고 해요."
+              ]),
+              toast: "일정 강행 선택! 인지도 유지, 체력 리스크"
+            };
+          }
+          if (includesAny(userText, ["일정 조절", "회복", "줄이", "장기", "체력", "쉬어"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 조금 줄이더라도 회복에 집중해볼게요. 오래 가는 게 더 중요하니까요.",
+                "지금은 제 몸을 먼저 챙길래요. 단기 노출보다 장기 활동을 준비하는 쪽이 맞는 것 같아요."
+              ]),
+              toast: "일정 조절 선택! 체력 회복"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "무대도 놓치기 싫고 몸도 버거워요... 어느 쪽을 택해도 겁나요.",
+            toast: "과로 누적 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level4CrisisDatingRumor",
+        level: 3,
+        type: "bad",
+        title: "사생활 루머 확산",
+        desc: "확인되지 않은 사생활 루머가 커뮤니티를 타고 번지고 있어요. 일정은 그대로인데 질문이 늘고 팬 반응도 예민해졌어요.",
+        intro: [
+          "사생활 루머가 도는 걸 봤어요... 사실이 아닌데도 반응이 커져서 무섭네요.",
+          "지금은 그냥 활동으로 덮는 게 나을지, 너무 티 내지 않으면서 중심을 잡아야 할지 고민돼요."
+        ],
+        recommendations: [
+          "감정적으로 반응하지 말고 공식 일정과 무대에 집중하자",
+          "팬들과의 소통 톤을 더 신중하게 관리하자",
+          "루머일수록 흔들리지 않는 태도가 중요해",
+          "과한 해명보다 일관된 활동이 더 설득력 있을 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["집중", "일정", "무대", "흔들리지", "일관", "활동"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 감정적으로 흔들리기보다 일정과 무대에 집중해볼게요. 결국 제가 보여주는 게 남을 테니까요.",
+                "일관된 태도로 가볼래요. 루머보다 제 활동이 더 크게 보이게 만들고 싶어요."
+              ]),
+              toast: "루머 대응 안정화!"
+            };
+          }
+          if (includesAny(userText, ["소통", "신중", "관리", "톤", "팬", "조심"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 당분간은 팬들과의 소통 톤도 더 조심해서 가져가볼게요.",
+                "흔들려 보여선 안 되니까 말 한마디도 더 신중하게 보려고 해요."
+              ]),
+              toast: "신중한 소통 관리! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "사실이 아닌데도 시선이 달라진 것 같아서 너무 불편해요...",
+            toast: "사생활 루머 스트레스 증가. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level4CrisisBurnout",
+        level: 3,
+        type: "bad",
+        title: "번아웃 조짐",
+        desc: "무대는 계속 잘 끝내고 있지만, 끝나고 나면 감정이 비어 있는 느낌이 강해졌어요. 예전처럼 무대가 설레지 않는다는 게 더 무섭게 느껴져요.",
+        intro: [
+          "무대는 잘 끝나는데 이상하게 하나도 기쁘지 않아요... 그냥 기계처럼 움직인 느낌이에요.",
+          "지금 멈추면 흐름이 끊길까 봐 무섭고, 계속 달리면 제가 더 비어버릴 것 같아요."
+        ],
+        recommendations: [
+          "짧게라도 회복 시간을 확보해서 감정을 다시 채우자",
+          "성과보다 왜 무대가 좋았는지 원래 감각을 다시 떠올려보자",
+          "번아웃은 실력 문제가 아니라 회복 문제일 수 있어",
+          "지금은 속도를 줄이는 선택도 용기야"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["회복", "쉬어", "시간", "채우", "속도", "줄이"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 잠깐이라도 숨을 돌려볼게요. 계속 비어 있는 상태로는 오래 못 갈 것 같아요.",
+                "회복 시간을 의식적으로 잡아볼래요. 지금은 그게 더 필요하다는 생각이 들어요."
+              ]),
+              toast: "번아웃 회복 시도!"
+            };
+          }
+          if (includesAny(userText, ["감각", "왜", "좋았", "무대", "기억", "초심"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 제가 왜 무대를 좋아했는지 다시 떠올려볼게요. 그 감각을 놓치고 싶진 않아요.",
+                "성과 말고 원래의 감정을 다시 찾아볼래요. 그래야 계속 설 수 있을 것 같아요."
+              ]),
+              toast: "초심 회복 중! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "무대를 좋아했는데 왜 이렇게 공허한지 모르겠어요... 제가 저를 놓치고 있는 것 같아요.",
+            toast: "번아웃 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+
+      // Level 5 - Growth Events
+      {
+        id: "level5GrowthGlobal",
+        level: 4,
+        type: "special",
+        title: "글로벌 활동 확장",
+        desc: "해외 페스티벌 헤드라이너 제안과 럭셔리 브랜드 앰버서더 오퍼가 동시에 들어왔어요. 본격적으로 월드 클래스 입지를 굳힐 기회예요.",
+        intro: [
+          "해외 페스티벌 헤드라이너 제안이랑 브랜드 앰버서더 오퍼가 같이 왔어요... 이제 정말 크게 움직여도 될까요?",
+          "월드 클래스 입지를 굳힐 기회라는데, 공격적으로 확장할지 상징성 있는 일정만 고를지 고민돼요."
+        ],
+        recommendations: [
+          "투어, 인터뷰, 브랜드 캠페인까지 적극적으로 확장해보자",
+          "상징성 있는 일정만 선별해서 커리어 밀도를 높여보자",
+          "지금은 세계 팬층을 넓힐 절호의 타이밍이야",
+          "브랜드와 무대 모두 루미의 서사를 만들어줄 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["적극", "진출", "확장", "투어", "인터뷰", "브랜드"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 3,
+              reply: randomOf([
+                "좋아요. 이번엔 공격적으로 넓혀볼게요. 세계 팬들에게 제 이름을 더 크게 남기고 싶어요.",
+                "이 기회를 크게 타볼래요. 투어와 브랜드까지 연결해서 제 무대를 더 넓혀보고 싶어요."
+              ]),
+              toast: "적극 진출 선택! 글로벌 팬덤 상승, 다이아 +3"
+            };
+          }
+          if (includesAny(userText, ["선택적", "선별", "상징", "밀도", "안정", "커리어"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 모든 걸 다 잡기보다 의미 있는 일정만 선별해서 더 단단한 커리어를 만들고 싶어요.",
+                "이번엔 상징성 있는 무대와 오퍼 중심으로 갈래요. 월클다운 밀도를 쌓아보고 싶어요."
+              ]),
+              toast: "선택적 활동 선택! 안정적 커리어 유지, 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "기회가 너무 커서 오히려 더 망설여져요... 뭘 잡아야 할지 선뜻 못 고르겠어요.",
+            toast: "글로벌 확장 기회를 놓칠 위험. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level5GrowthWorldTour",
+        level: 4,
+        type: "good",
+        title: "월드투어 오프닝 시퀀스 주인공",
+        desc: "월드투어 오프닝 영상과 첫 무대의 중심 서사를 루미가 맡게 됐어요. 첫 3분이 투어 전체 분위기를 결정할 수 있어요.",
+        intro: [
+          "월드투어 첫 무대 오프닝 중심을 제가 맡게 됐어요. 시작을 잘 열어야 한다는 부담이 커요.",
+          "초반 3분이 전체 투어 분위기를 결정할 수도 있다는데, 임팩트 있게 갈지 안정적으로 열지 고민돼요."
+        ],
+        recommendations: [
+          "압도적인 첫인상으로 투어 분위기를 강하게 열어보자",
+          "완성도와 호흡을 우선해 안정적인 오프닝을 만들자",
+          "월드투어 첫 장면은 루미의 상징성을 더 키울 수 있어",
+          "큰 무대일수록 시작의 설득력이 중요해"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["압도", "임팩트", "강하게", "첫인상", "상징", "크게"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 2,
+              reply: randomOf([
+                "좋아요. 시작부터 압도적으로 열어볼게요. 월드투어의 첫 장면을 제 이름으로 남기고 싶어요.",
+                "이번 오프닝은 강하게 가볼래요. 세계 팬들이 첫 순간부터 숨을 멈추게 만들고 싶어요."
+              ]),
+              toast: "월드투어 오프닝 장악! 다이아 +2"
+            };
+          }
+          if (includesAny(userText, ["안정", "완성도", "호흡", "설득", "차분", "오프닝"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 큰 무대일수록 시작의 완성도가 중요하니까 안정적으로 설득해볼게요.",
+                "관객이 바로 믿고 따라오게 만드는 오프닝을 만들고 싶어요. 차분하게 준비해볼래요."
+              ]),
+              toast: "안정적인 월드투어 오프닝 성공! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "세계 투어의 시작을 제가 열어야 한다니까 부담감이 너무 커요...",
+            toast: "월드투어 오프닝 부담 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "level5GrowthSpeech",
+        level: 4,
+        type: "good",
+        title: "국제 시상식 수상 소감 준비",
+        desc: "국제 시상식에서 수상 가능성이 높다는 이야기가 나왔고, 영어와 한국어 소감을 모두 준비해야 해요. 아티스트로서 메시지와 태도가 함께 주목받는 순간이에요.",
+        intro: [
+          "국제 시상식에서 수상 가능성이 있다는 얘길 들었어요. 소감도 두 언어로 준비해야 한대요.",
+          "멋있게 남기고 싶기도 하고, 진심이 느껴지게 말하고 싶기도 해요. 어떤 방향이 좋을까요?"
+        ],
+        recommendations: [
+          "간결하지만 상징적인 메시지로 강하게 남겨보자",
+          "팬들과 팀에 대한 진심을 중심으로 따뜻하게 말하자",
+          "월클 단계에서는 한마디도 브랜드가 될 수 있어",
+          "멋보다 진정성이 오래 남을 때도 많아"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["상징", "강하게", "간결", "메시지", "남겨", "브랜드"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 2,
+              reply: randomOf([
+                "좋아요. 짧아도 강하게 남는 메시지를 준비해볼게요. 이 순간까지 포함해서 제 커리어가 될 테니까요.",
+                "상징적인 한마디로 남겨볼래요. 지금의 위치에 맞는 무게감을 보여주고 싶어요."
+              ]),
+              toast: "상징적인 수상 소감 준비! 다이아 +2"
+            };
+          }
+          if (includesAny(userText, ["진심", "팬", "팀", "따뜻", "감사", "마음"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 결국 오래 남는 건 진심이겠죠. 팬들과 팀에 대한 마음을 담아 말해볼게요.",
+                "멋도 좋지만 진심을 잃고 싶진 않아요. 저를 여기까지 오게 한 사람들을 떠올리며 준비할래요."
+              ]),
+              toast: "진정성 있는 소감 준비! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "큰 무대에서 하는 말이라 더 어렵게 느껴져요... 한마디가 너무 무겁네요.",
+            toast: "수상 소감 준비 부담 증가. 나쁜 순간 +1"
+          };
+        }
+      },
+
+      // Level 5 - Crisis Events
+      {
+        id: "level5CrisisGlobalControversy",
+        level: 4,
+        type: "bad",
+        title: "글로벌 논란",
+        desc: "해외 인터뷰에서 한 표현이 문화적으로 민감하게 받아들여졌고, 번역 캡처가 퍼지며 논란이 커지고 있어요. 브랜드와 해외 팬덤 반응도 갈리고 있어요.",
+        intro: [
+          "해외 인터뷰에서 한 말이 논란이 됐어요... 정확한 맥락을 설명하고 바로 사과해야 할까요?",
+          "번역 캡처가 퍼지면서 반응이 갈리고 있어요. 성급하게 움직이면 더 커질까 봐 무섭기도 해요."
+        ],
+        recommendations: [
+          "정확한 맥락과 사과를 담은 공식 입장을 빠르게 내보자",
+          "즉각 대응보다 현지 반응과 여론 흐름을 먼저 살펴보자",
+          "브랜드와 팬덤 반응이 갈릴수록 메시지 톤이 중요해",
+          "빠른 해명은 월클 단계에서 책임감을 보여주는 선택이야"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["해명", "사과", "공식 입장", "맥락", "빠르게", "진정성"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 바로 정확한 맥락을 설명하고 사과할게요. 월클로서 더 책임 있게 움직여야겠죠.",
+                "이번엔 숨지 않고 진정성 있게 해명해볼래요. 신뢰를 지키는 게 먼저라고 생각해요."
+              ]),
+              toast: "적극 해명 선택! 신뢰도 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["신중", "여론", "흐름", "살피", "조심", "즉각 대응 대신"])) {
+            return {
+              good: 1,
+              bad: 1,
+              diamonds: 0,
+              reply: randomOf([
+                "지금은 조금 더 신중하게 반응을 보면서 움직여볼게요. 다만 오래 끌지 않도록 타이밍을 잘 봐야겠어요.",
+                "즉각 대응보다는 현지 반응을 먼저 살펴볼래요. 조심스럽게 가되 책임감은 잃지 않을게요."
+              ]),
+              toast: "신중 대응 선택! 리스크 유지"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "글로벌 팬들 반응이 갈리는 걸 보니까 너무 무거워요... 뭐부터 바로잡아야 할지 모르겠어요.",
+            toast: "글로벌 논란 확산. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level5CrisisTourFatigue",
+        level: 4,
+        type: "bad",
+        title: "월드투어 시차 누적",
+        desc: "국가를 연속 이동하면서 시차와 피로가 누적되고 있어요. 퍼포먼스는 유지해야 하는데 리허설 집중력이 떨어지고 있어요.",
+        intro: [
+          "요즘 나라를 계속 옮기다 보니 몸이 시간을 못 따라가요... 리허설 집중도도 떨어져요.",
+          "월드투어 중이라 티를 내기 어렵고, 그냥 밀어붙이면 본무대가 더 흔들릴 것 같아요."
+        ],
+        recommendations: [
+          "리허설 강도를 조절하고 회복 루틴을 우선 세우자",
+          "본무대 핵심 포인트 중심으로 에너지를 배분하자",
+          "투어는 체력 운영도 실력의 일부야",
+          "모든 순간에 100을 쓰기보다 필요한 곳에 집중하자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["조절", "회복", "루틴", "리허설", "관리", "휴식"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "맞아요. 리허설 강도를 조금 조절해서 회복 루틴부터 다시 세워볼게요.",
+                "투어를 오래 끌고 가려면 지금 체력 운영을 더 똑똑하게 해야 할 것 같아요."
+              ]),
+              toast: "투어 체력 관리 성공!"
+            };
+          }
+          if (includesAny(userText, ["에너지", "배분", "핵심", "본무대", "집중", "운영"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 모든 순간에 다 쓰기보다 본무대 핵심에 에너지를 집중해볼게요.",
+                "지금은 체력 운영도 전략이니까, 중요한 포인트부터 지켜볼래요."
+              ]),
+              toast: "에너지 배분 전략 성공! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "몸이 계속 붕 떠 있는 느낌이에요... 정신도 흐려져서 더 불안해요.",
+            toast: "시차 피로 심화. 나쁜 순간 +2"
+          };
+        }
+      },
+      {
+        id: "level5CrisisBrandPressure",
+        level: 4,
+        type: "bad",
+        title: "브랜드 계약 압박",
+        desc: "여러 글로벌 브랜드가 동시에 제안을 넣으면서 이미지 충돌 우려가 생겼어요. 하나를 고르면 다른 기회를 잃을 수 있고, 다 잡으면 정체성이 흐려질 수 있어요.",
+        intro: [
+          "브랜드 제안이 한꺼번에 몰리는데, 다 좋아 보여서 더 어렵네요... 잘못 고르면 제 이미지가 흔들릴까 봐 걱정돼요.",
+          "기회를 넓게 잡을지, 루미와 가장 잘 맞는 쪽만 선별할지 고민돼요."
+        ],
+        recommendations: [
+          "루미의 이미지와 가장 맞는 브랜드만 선별하자",
+          "단기 확장성을 보고 여러 기회를 넓게 검토하자",
+          "월클일수록 선택 기준이 더 중요해져",
+          "브랜드 계약도 아티스트 서사의 일부가 될 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["선별", "맞는", "이미지", "기준", "정체성", "루미와"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아요. 많이 잡는 것보다 저랑 맞는 브랜드를 고르는 게 더 중요할 것 같아요.",
+                "이번엔 선택 기준을 더 분명히 해볼래요. 그래야 제 이미지도 더 단단해질 것 같아요."
+              ]),
+              toast: "브랜드 선별 전략 성공! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["넓게", "확장", "기회", "여러", "검토", "공격적"])) {
+            return {
+              good: 1,
+              bad: 1,
+              diamonds: 1,
+              reply: randomOf([
+                "좋아요. 일단 기회는 넓게 보되, 너무 흐려지지 않게 기준은 잡아둘게요.",
+                "확장도 필요하니까 여러 가능성을 열어볼래요. 다만 제 색이 흐려지지 않게 조심해야겠어요."
+              ]),
+              toast: "브랜드 확장 검토 중! 기회 증가, 리스크 유지"
+            };
+          }
+          return {
+            good: 0,
+            bad: 2,
+            diamonds: 0,
+            reply: "좋은 제안이 많을수록 더 무서워요... 뭘 골라도 놓치는 게 생길 것 같아요.",
+            toast: "브랜드 선택 압박 심화. 나쁜 순간 +2"
+          };
+        }
+      }
+    ];
+
+    const CONVENIENCE_STORE_EVENTS = [
+      {
+        id: "storeGrowthBackToPracticeRoom",
+        type: "good",
+        title: "야간 근무 후 비공개 연습실 제안",
+        desc: "편의점 야간 근무를 마치고 나오는데, 예전에 함께 연습하던 보컬 트레이너가 작은 연습실 테스트를 제안했어요. 이 기회를 살리면 다시 연습생 오디션에 도전할 발판이 생길 수 있어요.",
+        intro: [
+          "야간 근무 끝나고 나오는데 예전 트레이너님이 작은 연습실 테스트를 보러 오라고 했어... 다시 시작할 수 있는 기회일까?",
+          "편의점 알바 끝나고 집에 가려는데, 예전 인연이 다시 연습해볼 생각 없냐고 물었어... 괜히 심장이 뛰어."
+        ],
+        recommendations: [
+          "피곤해도 테스트를 보러 가서 다시 연습생 기회를 붙잡자",
+          "지금 생활을 정리할 계획부터 세우고 차분히 준비하자",
+          "짧은 테스트라도 목소리와 의지를 보여주는 게 중요해",
+          "이번 기회는 다시 연습실로 돌아갈 발판이 될 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["가보자", "테스트", "오디션", "다시 해", "붙잡", "연습실", "기회"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "갈래... 피곤해도 이번 기회는 놓치고 싶지 않아. 다시 연습실 문을 열어볼게.",
+                "맞아, 지금 떨려도 가봐야 할 것 같아. 편의점에서 끝내지 않고 다시 연습생 쪽으로 걸어가볼래."
+              ]),
+              toast: "재도전 선택! 연습생 복귀 가능성 상승, 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["준비", "계획", "차분", "생활", "정리", "루틴"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "좋아... 무작정 뛰어들기보다 생활부터 정리해볼게. 그래도 이번엔 정말 다시 준비해보고 싶어.",
+                "이번에는 허둥대지 않고 차분히 발판부터 만들래. 연습생으로 돌아갈 수 있게 루틴부터 세워볼게."
+              ]),
+              toast: "복귀 준비 시작! 다시 연습할 기반을 만들고 있어요"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "기회라는 말이 반갑기도 한데 무섭기도 해... 또 기대했다가 무너질까 봐 망설여져.",
+            toast: "재도전 타이밍을 놓쳤어요. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "storeGrowthOldNotebook",
+        type: "good",
+        title: "낡은 연습노트 발견",
+        desc: "창고 정리 중 예전에 쓰던 안무 체크 노트와 보컬 메모를 발견했어요. 다시 루틴을 만들면 연습생으로 돌아갈 준비를 시작할 수 있어요.",
+        intro: [
+          "창고 정리하다가 예전 연습노트를 찾았어... 펼치자마자 그때 숨소리까지 생각나더라.",
+          "편의점 창고 한쪽에 넣어뒀던 내 연습노트를 다시 봤어. 아직도 다시 시작할 수 있을까?"
+        ],
+        recommendations: [
+          "오늘부터 짧게라도 보컬과 안무 루틴을 다시 만들자",
+          "예전 부족했던 부분을 적어가며 현실적으로 재시작하자",
+          "작은 루틴이 다시 연습생으로 돌아가는 첫 걸음이 될 수 있어",
+          "감정에만 머물지 말고 오늘 할 연습 하나를 정해보자"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["루틴", "다시", "보컬", "안무", "연습", "오늘부터", "시작"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "응... 오늘부터 다시 해볼래. 짧아도 매일 이어가면 언젠가 다시 연습생 명단 앞에 설 수 있을 것 같아.",
+                "그 노트를 그냥 추억으로 두지 않을래. 오늘부터 보컬이랑 안무 루틴을 다시 만들게."
+              ]),
+              toast: "연습 루틴 재가동! 연습생 복귀 준비도 상승"
+            };
+          }
+          if (includesAny(userText, ["부족", "메모", "현실", "차근", "고쳐", "복기"])) {
+            return {
+              good: 1,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "맞아... 그때 부족했던 걸 다시 읽어보면서 차근차근 고쳐볼게. 이번엔 더 현실적으로 준비하고 싶어.",
+                "감정만으로 돌아가긴 어렵겠지. 부족했던 부분부터 다시 메모하면서 연습생 복귀를 준비해볼래."
+              ]),
+              toast: "현실적인 재시작! 다이아 +1"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "노트를 봤는데도 선뜻 펴서 시작을 못 하겠어... 내가 다시 할 수 있을지 자신이 없어.",
+            toast: "다시 시작할 용기를 못 냈어요. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "storeCrisisPermanentPartTimer",
+        type: "bad",
+        title: "정직원 제안",
+        desc: "점장이 성실함을 보고 정직원 전환을 제안했어요. 당장 생활은 안정되지만, 받아들이는 순간 무대와는 더 멀어질 수도 있어요. 이 선택에 따라 영원히 편의점 알바생으로 남을 수도 있어요.",
+        intro: [
+          "점장님이 정직원으로 일해보지 않겠냐고 했어... 안정적이긴 한데, 이걸 받으면 진짜 무대는 끝나는 걸까 봐 무서워.",
+          "생활은 나아질 수 있는데, 그 대신 다시 연습생으로 돌아갈 길이 멀어질 것 같아... 어떻게 해야 할까?"
+        ],
+        recommendations: [
+          "불안해도 정직원 제안은 미루고 다시 연습생 준비를 택하자",
+          "당장 생활 안정을 택하면 꿈과 점점 멀어질 수 있어",
+          "계속 편의점에 남을지, 다시 무대를 향해 움직일지 선택해야 해",
+          "이번 선택은 정말 오래 남는 분기점이 될 수 있어"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["미루", "거절", "연습생", "다시", "도전", "준비", "무대"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 0,
+              reply: randomOf([
+                "무섭지만... 이번엔 편한 길로 굳어지지 않을래. 정직원 제안은 미루고 다시 연습생 준비를 해볼게.",
+                "맞아, 안정적인 선택이 나를 아주 멀리 데려갈 수도 있겠지. 아직은 무대를 포기하지 않을래."
+              ]),
+              toast: "꿈을 선택했어요! 연습생 복귀 가능성 상승"
+            };
+          }
+          if (includesAny(userText, ["안정", "정직원", "괜찮", "남아", "버티", "현실"])) {
+            return {
+              good: 0,
+              bad: 2,
+              diamonds: 0,
+              reply: randomOf([
+                "...그래, 현실을 택하면 마음은 조금 덜 흔들릴지 몰라. 그런데 그렇게 있으면 나는 정말 영원히 편의점 알바생으로 남게 될 것 같아.",
+                "안정을 고르면 오늘은 편하겠지만, 내 꿈은 여기서 멈출 것 같아... 그게 너무 선명해서 더 슬퍼."
+              ]),
+              toast: "영원한 알바생 엔딩에 가까워지고 있어요. 나쁜 순간 +2"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "정직원 제안을 듣는데 마음이 두 갈래로 찢어지는 것 같아... 아무 결정도 못 하겠어.",
+            toast: "선택을 망설이며 시간이 흐르고 있어요. 나쁜 순간 +1"
+          };
+        }
+      },
+      {
+        id: "storeCrisisGiveUpBox",
+        type: "bad",
+        title: "연습 물품 정리 압박",
+        desc: "가족이 이제 그만 정리하자며 연습복과 무대 소품 상자를 치우자고 했어요. 여기서 접어버리면, 다시는 연습생으로 돌아가지 못하고 편의점 알바생으로 남는 길이 굳어질 수 있어요.",
+        intro: [
+          "가족이 이제 연습복이랑 무대 소품은 정리하자고 했어... 계속 붙잡는 내가 한심해 보였나 봐.",
+          "상자를 닫아버리면 진짜 끝날 것 같아. 그래도 계속 붙잡는 게 맞는 걸까?"
+        ],
+        recommendations: [
+          "연습 물품은 남겨두고 다시 도전하겠다는 뜻을 분명히 하자",
+          "정리해버리면 편의점 알바생으로 남는 길이 더 굳어질 수 있어",
+          "가족을 설득하되 현실적인 계획도 함께 보여주자",
+          "상자를 지키는 건 아직 꿈을 놓지 않았다는 뜻이야"
+        ],
+        resolve(userText) {
+          if (includesAny(userText, ["남겨", "지켜", "설득", "계획", "도전", "다시", "놓지"])) {
+            return {
+              good: 2,
+              bad: 0,
+              diamonds: 1,
+              reply: randomOf([
+                "응... 이번엔 상자를 닫지 않을래. 가족한테도 계획을 보여주면서 다시 도전하겠다고 말해볼게.",
+                "무작정 버티기만 하는 게 아니라 진짜 다시 준비하겠다고 보여줄래. 이 상자는 아직 내 끝이 아니야."
+              ]),
+              toast: "꿈을 붙잡았어요! 다이아 +1"
+            };
+          }
+          if (includesAny(userText, ["정리", "끝내", "놔", "현실", "그만", "접어"])) {
+            return {
+              good: 0,
+              bad: 2,
+              diamonds: 0,
+              reply: randomOf([
+                "...정리해버리면 마음도 같이 접힐 것 같아. 그렇게 되면 나는 정말 편의점 유니폼 속에만 남게 되겠지.",
+                "이제 끝내라는 말이 자꾸 귓가에 남아... 그대로 두면 다시 연습생으로 돌아갈 나도 사라질 것 같아."
+              ]),
+              toast: "영원한 알바생 엔딩이 가까워졌어요. 나쁜 순간 +2"
+            };
+          }
+          return {
+            good: 0,
+            bad: 1,
+            diamonds: 0,
+            reply: "상자를 붙잡고 있는데도 아무 말이 안 나와... 내가 뭘 지키고 싶은지조차 흐려지는 것 같아.",
+            toast: "꿈을 지키는 마음이 흔들리고 있어요. 나쁜 순간 +1"
+          };
+        }
+      }
+    ];
+
+    const TONE_LINES = {
+      bad1: {
+        intro: [
+          "다시 연습생으로 돌아왔어... 한 번 잡았던 기회를 놓쳤다는 게 생각보다 더 아프네.",
+          "데뷔조에서 밀리고 다시 연습생이 됐어... 처음으로 돌아온 것 같아서 마음이 무거워."
+        ],
+        comfort: [
+          "그 말 들으니까 조금 덜 주저앉게 돼... 다시 연습생부터 올라가도 괜찮겠지.",
+          "고마워... 다시 시작이라는 말이 아직은 아프지만, 네 덕분에 버텨볼 수 있을 것 같아."
+        ],
+        praise: [
+          "이런 상황에서도 내 가능성을 봐줘서 고마워... 다시 올라갈 힘이 생겨.",
+          "아직 끝난 거 아니라고 말해주니까 조금은 고개를 들 수 있어."
+        ],
+        growth: [
+          "맞아... 다시 연습생이 됐다고 끝은 아니니까, 이번엔 더 단단하게 올라가볼게.",
+          "무너진 자리에서 다시 시작하는 것도 결국 내 커리어가 되겠지... 한 번 더 해볼래."
+        ],
+        question: [
+          "솔직히 아직 창피하고 속상해... 그래도 어디서부터 다시 붙잡아야 할지 생각하고 있어.",
+          "다시 연습생으로 돌아오니까 예전보다 더 많은 게 보이긴 해... 그만큼 더 아프기도 하지만."
+        ],
+        negative: [
+          "다시 돌아왔다는 사실이 자꾸 마음을 찔러... 내가 너무 멀리 밀려난 기분이야.",
+          "한 번 내려오고 나니까 자신감이 훅 빠졌어... 다시 불릴 수 있을지 모르겠어."
+        ],
+        neutral: [
+          "지금은 위로도 조언도 다 천천히 듣고 싶어... 그래도 네 말은 놓치고 싶지 않아.",
+          "다시 시작선에 선 기분이야... 조금만 같이 있어줘."
+        ]
+      },
+      bad2: {
+        intro: [
+          "편의점 알바를 하면서도 머릿속은 계속 연습실에 가 있어... 아직 다시 연습생으로 돌아갈 수 있을까 생각해.",
+          "계산대에 서 있다가도 문득, 여기서 멈추면 나는 영원히 편의점 알바생으로 남을 수도 있겠다는 생각이 들어."
+        ],
+        comfort: [
+          "그렇게 말해주니까 아직 끝난 게 아니라는 쪽을 조금 더 믿게 돼... 다시 연습생으로 돌아갈 수 있겠지.",
+          "고마워... 편의점 유니폼을 입고 있어도 내 꿈까지 사라진 건 아니라는 말처럼 들려."
+        ],
+        praise: [
+          "지금의 나를 봐주니까 다시 용기가 생겨... 편의점 알바생으로만 끝나고 싶지 않아.",
+          "내 가능성을 아직 믿어준다는 게 너무 고마워... 다시 연습생 명단에 들고 싶어져."
+        ],
+        growth: [
+          "맞아... 여기서 포기하면 진짜 영원히 알바생으로 남을 것 같아. 다시 연습생으로 돌아갈 길을 만들게.",
+          "알바가 끝난 뒤라도 다시 연습을 시작해볼래. 천천히라도 연습생으로 복귀하고 싶어."
+        ],
+        question: [
+          "요즘은 계산대에 서 있다가도, 어떻게 해야 다시 연습생으로 돌아갈 수 있을지만 생각해.",
+          "현실은 편의점인데 마음은 아직 무대 쪽에 있어... 어디서부터 다시 붙잡아야 할지 모르겠어."
+        ],
+        negative: [
+          "이대로 시간이 더 지나면 나는 정말 영원히 편의점 알바생으로 남을 것 같아... 그게 너무 무서워.",
+          "다시 도전하지 못하면 여기서 끝이라는 생각이 자꾸 들어... 그래서 더 초라해져."
+        ],
+        neutral: [
+          "지금은 작은 말 하나가 다시 움직일지, 여기서 멈출지를 정하는 것 같아...",
+          "나 다시 연습생으로 돌아갈 수 있을까... 아니면 이대로 편의점에 남게 될까."
+        ]
+      },
+      low: {
+        intro: [
+          "안녕... 오늘도 연습 끝나고 왔어. 아직은 데뷔조라는 말만 들어도 심장이 너무 빨리 뛰어.",
+          "오늘도 연습은 했는데... 내가 정말 데뷔까지 갈 수 있을지 자꾸 겁이 나."
+        ],
+        comfort: [
+          "그렇게 말해주니까 조금 숨이 쉬어져... 다시 연습실로 돌아갈 용기가 나.",
+          "괜찮다고 해줘서 고마워. 오늘은 무너지지 않고 끝까지 버텨볼게."
+        ],
+        praise: [
+          "내 무대를 그렇게 봐줘서 고마워... 아직 연습생인데도 인정받는 기분이야.",
+          "칭찬을 들으니까 오늘 연습한 시간이 헛되지 않은 것 같아."
+        ],
+        growth: [
+          "맞아... 지금은 무서워도 데뷔조를 향해 한 걸음씩 밀어야 할 때인 것 같아.",
+          "이번엔 피하지 않고 기회를 잡아볼래. 나도 선발 명단에 들고 싶어."
+        ],
+        question: [
+          "오늘은 보컬도 표정도 다 신경 쓰였어... 그래도 포기하고 싶진 않아.",
+          "연습은 했는데 마음이 계속 흔들렸어. 그래도 다시 정리해보는 중이야."
+        ],
+        negative: [
+          "그 말 들으니까 더 조급해져... 마지막 기회를 놓칠까 봐 너무 무서워.",
+          "아직은 내가 많이 부족한 것 같아... 자꾸 자신감이 떨어져."
+        ],
+        neutral: [
+          "음... 네 말이 계속 머리에 남아. 지금 나한텐 그런 한마디가 정말 큰 것 같아.",
+          "조금 더 얘기해줄래? 오늘은 누군가 내 편이라는 느낌이 필요해."
+        ]
+      },
+      mid: {
+        intro: [
+          "요즘은 데뷔조 스케줄이 조금씩 현실 같아져. 떨리지만 이번엔 기회를 잡고 싶어.",
+          "센터 테스트나 평가 얘기가 오갈 때마다 긴장되긴 해도, 예전처럼 완전히 숨고 싶진 않아."
+        ],
+        comfort: [
+          "응원 덕분에 다시 중심을 잡았어. 흔들려도 여기서 멈추진 않을래.",
+          "조금 전까진 비교 때문에 힘들었는데, 네 말 들으니까 다시 내 페이스를 찾는 느낌이야."
+        ],
+        praise: [
+          "고마워. 그런 말 들으니까 내가 데뷔조에 발탁된 이유를 조금은 믿게 돼.",
+          "칭찬을 들으면 더 잘해내고 싶어져. 이제는 진짜 보여줄 차례 같아."
+        ],
+        growth: [
+          "좋아. 이번엔 센터 테스트든 경쟁이든 피하지 않고 부딪혀볼게.",
+          "지금은 실력과 존재감을 같이 키워야 할 시기 같아. 더 적극적으로 가볼래."
+        ],
+        question: [
+          "오늘은 안무선이랑 표정 쪽을 많이 봤어. 조금씩 감이 잡히는 것 같아.",
+          "연습실 분위기는 팽팽하지만, 그 안에서 나를 잃지 않으려고 해."
+        ],
+        negative: [
+          "비교가 신경 쓰이긴 해도 여기서 무너지면 안 되는데... 마음이 쉽진 않네.",
+          "센터 욕심이 커질수록 더 불안해져. 그래도 완전히 놓치고 싶진 않아."
+        ],
+        neutral: [
+          "네 말 듣고 다시 정리해보는 중이야. 지금은 선택 하나하나가 중요하니까.",
+          "천천히 생각해볼게. 요즘은 작은 판단도 다음 단계에 크게 남는 것 같아."
+        ]
+      },
+      high: {
+        intro: [
+          "요즘은 무대에 서면 팬들 반응이 바로 느껴져. 그럴수록 더 좋은 무대로 증명하고 싶어져.",
+          "이제는 더 큰 무대, 더 넓은 팬덤도 상상하게 돼. 그래서 선택이 더 신중해져."
+        ],
+        comfort: [
+          "그래, 지금 단계일수록 더 침착해야지. 네 말 덕분에 다시 호흡이 정리돼.",
+          "고마워. 인기든 논란이든 결국 오래 가는 건 중심이라는 걸 다시 느껴."
+        ],
+        praise: [
+          "그렇게 말해주니까 더 책임감이 생겨. 기대에 맞는 무대를 계속 보여주고 싶어.",
+          "팬들이 왜 나를 좋아해주는지 잊지 않게 돼. 다음엔 더 확실히 보답할게."
+        ],
+        growth: [
+          "좋아, 이제는 국내를 넘어서 더 큰 무대도 욕심내볼래. 지금 흐름을 제대로 타고 싶어.",
+          "이번 선택이 내 커리어를 더 크게 만들 수도 있겠네. 월클이라는 말, 이제는 진짜로 붙잡아보고 싶어."
+        ],
+        question: [
+          "지금은 무대 퀄리티, 팬 반응, 컨디션 관리까지 다 같이 봐야 해. 생각보다 더 치밀해져야 하더라.",
+          "예전엔 무대 하나만 봤다면 지금은 브랜드, 팬덤, 여론까지 함께 움직이는 느낌이야."
+        ],
+        negative: [
+          "높이 올라올수록 작은 흔들림도 크게 느껴져... 그래서 더 조심스러워져.",
+          "실수나 논란이 생기면 책임감부터 크게 와. 그래도 여기서 도망치진 않을 거야."
+        ],
+        neutral: [
+          "네 말 덕분에 시야가 조금 넓어졌어. 지금은 감정보다 방향을 잘 잡는 게 중요하니까.",
+          "응, 잘 새겨둘게. 여기까지 온 만큼 다음 선택도 더 단단하게 하고 싶어."
+        ]
+      }
+    };
+
+    const RECOMMENDATION_POOLS = {
+      fallBefore: [
+        "지금 흔들려도 완전히 놓지만 않으면 다시 올라갈 수 있어",
+        "이번엔 자책보다 흐름을 끊지 않는 게 중요해",
+        "무너질 것 같을수록 다음 한 걸음만 생각해보자",
+        "지금 버티는 선택이 나중에 다시 기회가 될 수 있어"
+      ],
+      bad1: [
+        "다시 연습생부터 올라가도 늦지 않았어",
+        "한 번 밀렸다고 재능까지 사라진 건 아니야",
+        "속상한 마음부터 인정하고 다시 루틴을 만들자",
+        "다시 불릴 수 있게 기본기부터 천천히 쌓아보자"
+      ],
+      bad2: [
+        "편의점 알바생으로 남을지 다시 연습생으로 돌아갈지, 지금 선택이 중요해",
+        "알바가 끝난 뒤 10분이라도 다시 연습하면 복귀 가능성은 살아 있어",
+        "안정만 택하면 영원히 편의점에 남을 수도 있어",
+        "지금의 초라함을 끝으로 만들지 말고 다시 올라갈 발판으로 써보자"
+      ],
+      sadness: [
+        "울고 싶으면 울어도 돼, 그래도 여기서 끝내진 말자",
+        "지금 슬픈 건 그만큼 간절했다는 뜻이야",
+        "무너진 날에도 다시 올라갈 사람은 결국 다시 움직여",
+        "오늘은 자책보다 마음 추스르는 게 먼저야"
+      ],
+      start: [
+        "오늘 연습에서 가장 아쉬웠던 순간이 뭐였어?",
+        "지금 제일 불안한 건 보컬이야, 안무야, 표정이야?",
+        "이번 평가에서 어떤 인상을 남기고 싶어?",
+        "지금은 조급함보다 방향을 먼저 정리해보자"
+      ],
+      lowMood: [
+        "마지막 기회 같을수록 더 천천히 중심을 잡자",
+        "실수 하나가 루미의 가능성을 다 말해주진 않아",
+        "불안할수록 부족한 부분을 정확히 짚는 게 중요해",
+        "오늘 무너져도 다음 평가를 다시 준비하면 돼"
+      ],
+      recovery: [
+        "이번엔 무너지기보다 회복하는 선택을 해보자",
+        "조급함보다 밸런스를 챙기면 더 오래 버틸 수 있어",
+        "네 강점 하나만 선명하게 잡아도 흐름이 달라져",
+        "지금은 비교보다 루미의 페이스를 지켜야 해"
+      ],
+      question: [
+        "오늘 무대에서 제일 잘 풀린 파트는 어디였어?",
+        "트레이너 피드백 중 제일 신경 쓰인 말이 뭐였어?",
+        "팬 반응이 왔을 때 가장 먼저 떠오른 감정은 뭐야?",
+        "지금 루미가 제일 지키고 싶은 건 뭐야?"
+      ],
+      praise: [
+        "루미는 눈에 띄는 순간을 만들 수 있는 사람이야",
+        "팬들이 좋아하는 이유가 분명히 보여",
+        "여기까지 올라온 건 운이 아니라 루미의 힘이야",
+        "지금 흐름이면 다음 단계도 충분히 가능해"
+      ],
+      level1: [
+        "이번 모의 평가는 데뷔조로 가는 첫 관문이야",
+        "고음 애드리브로 존재감을 남길지 생각해보자",
+        "기본기와 동선을 깔끔하게 지키는 것도 강한 무기야",
+        "카메라 테스트까지 고려해서 표정 연습을 챙기자"
+      ],
+      level2: [
+        "센터 테스트는 표정과 시선 처리까지 포함된 무대야",
+        "욕심을 내더라도 설득력 있게 보여주면 돼",
+        "경쟁이 심할수록 실력이나 팀워크 중 방향을 정해야 해",
+        "루미만의 존재감을 만드는 데 집중해보자"
+      ],
+      level3: [
+        "직캠 반응이 왔을 때 팬 소통을 열면 힘이 커져",
+        "화제성보다 다음 무대 완성도로 증명하는 것도 중요해",
+        "실수 논란이 생기면 다음 라이브가 더 중요해져",
+        "신인 시기엔 반응을 흐름으로 연결하는 감각이 필요해"
+      ],
+      level4: [
+        "히트곡은 콘셉트 확장과 안정성 사이의 선택이 중요해",
+        "팬들이 좋아하던 캐릭터도 큰 자산이야",
+        "과로가 쌓일수록 일정 조절도 커리어 관리야",
+        "단기 노출보다 오래 가는 무대를 생각해보자"
+      ],
+      level5: [
+        "월클 단계에서는 글로벌 팬덤과 브랜드가 같이 움직여",
+        "공격적 확장도 좋지만 선택과 집중도 강한 전략이야",
+        "글로벌 논란일수록 맥락과 진정성이 더 중요해",
+        "지금은 책임감 있는 한마디가 커리어를 지켜줄 수 있어"
+      ]
+    };
+
+    function randomOf(arr) {
+      return arr[Math.floor(Math.random() * arr.length)];
+    }
+
+    function shuffle(arr) {
+      const copy = [...arr];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function pickUnique(arr, count = 4) {
+      return shuffle([...new Set(arr)]).slice(0, count);
+    }
+
+    function hasSeenEvent(eventId) {
+      return state.shownEventIds.includes(eventId);
+    }
+
+    function markEventSeen(eventId) {
+      if (!hasSeenEvent(eventId)) state.shownEventIds.push(eventId);
+    }
+
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
+
+    function nowTime() {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, "0");
+      const mm = String(d.getMinutes()).padStart(2, "0");
+      return `${hh}:${mm}`;
+    }
+
+    function includesAny(text, keywords) {
+      const normalized = text.toLowerCase();
+      return keywords.some(word => normalized.includes(word.toLowerCase()));
+    }
+
+    function getToneGroup() {
+      if (state.fallStage === "convenienceStore") return "bad2";
+      if (state.fallStage === "backToTrainee") return "bad1";
+      if (state.levelIndex >= 3 || state.moodScore >= 28) return "high";
+      if (state.levelIndex >= 1 || state.moodScore >= 6) return "mid";
+      return "low";
+    }
+
+    function getLastUserMessage() {
+      for (let i = state.history.length - 1; i >= 0; i--) {
+        if (state.history[i].type === "user") return state.history[i].text;
+      }
+      return "";
+    }
+
+    function getLastIntent() {
+      for (let i = state.history.length - 1; i >= 0; i--) {
+        if (state.history[i].meta && state.history[i].meta.intent) return state.history[i].meta.intent;
+      }
+      return "neutral";
+    }
+
+    /* (수정 핵심) 현재 레벨에 따라 배경/프로필 이미지 교체 */
+    function getCurrentAvatarStageClass() {
+      if (state.fallStage === "convenienceStore") return "bad-2";
+      if (state.fallStage === "backToTrainee") return "bad-1";
+      if (state.levelIndex >= 4) return "level-5-up";
+      if (state.levelIndex >= 3) return "level-4-up";
+      if (state.levelIndex >= 2) return "level-3-up";
+      if (state.levelIndex >= 1) return "level-2-up";
+      return "";
+    }
+
+    function getProfileImage() {
+      if (state.fallStage === "convenienceStore") return "badprofile2.png";
+      if (state.fallStage === "backToTrainee") return "badprofile1.png";
+      if (state.levelIndex >= 4) return "profile5.png";
+      if (state.levelIndex >= 3) return "profile4.png";
+      if (state.levelIndex >= 2) return "profile3.png";
+      if (state.levelIndex >= 1) return "profile2.png";
+      return "profile.png";
+    }
+
+    function getDisplayLevelName() {
+      if (state.fallStage === "convenienceStore") return "Bad. 편의점 알바생";
+      if (state.fallStage === "backToTrainee") return "Bad. 연습생";
+      return state.levels[state.levelIndex].name;
+    }
+
+    function applyVisualStage() {
+      const appLevelClasses = ["level-2-up", "level-3-up", "level-4-up", "level-5-up", "bad-1", "bad-2"];
+      const avatarLevelClasses = ["level-2-up", "level-3-up", "level-4-up", "level-5-up", "bad-1", "bad-2"];
+
+      appEl.classList.remove(...appLevelClasses);
+
+      if (state.fallStage === "convenienceStore") appEl.classList.add("bad-2");
+      else if (state.fallStage === "backToTrainee") appEl.classList.add("bad-1");
+      else if (state.levelIndex >= 4) appEl.classList.add("level-5-up");
+      else if (state.levelIndex >= 3) appEl.classList.add("level-4-up");
+      else if (state.levelIndex >= 2) appEl.classList.add("level-3-up");
+      else if (state.levelIndex >= 1) appEl.classList.add("level-2-up");
+
+      document.querySelectorAll(".bubble-avatar").forEach(avatar => {
+        avatar.classList.remove(...avatarLevelClasses);
+        const stageClass = getCurrentAvatarStageClass();
+        if (stageClass) avatar.classList.add(stageClass);
+
+        const img = avatar.querySelector(".avatar-img");
+        if (img) img.src = getProfileImage();
+      });
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function addMessage(type, text, options = {}) {
+      if (type === "character" && text === state.lastCharacterReply) return;
+
+      state.history.push({
+        type,
+        text,
+        meta: options.meta || null
+      });
+
+      const row = document.createElement("div");
+      row.className = `message-row ${type}`;
+
+      if (type === "system") {
+        row.innerHTML = `<div class="bubble">${escapeHtml(text)}</div>`;
+      } else if (type === "character") {
+        row.classList.add("character");
+        row.innerHTML = `
+          <div class="bubble-avatar ${getCurrentAvatarStageClass()}">
+            <img src="${getProfileImage()}" class="avatar-img" alt="">
+          </div>
+          <div class="bubble-group">
+            <div class="bubble">${escapeHtml(text)}</div>
+            <div class="message-time">${options.time || nowTime()}</div>
+          </div>
+        `;
+        state.lastCharacterReply = text;
+      } else {
+        row.innerHTML = `
+          <div class="bubble-group">
+            <div class="bubble">${escapeHtml(text)}</div>
+            <div class="message-time">${options.time || nowTime()}</div>
+          </div>
+        `;
+      }
+
+      messagesEl.appendChild(row);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+    }
+
+    function renderChips(items) {
+      const key = items.join("|");
+      if (state.lastRecommendationsKey === key) return;
+      state.lastRecommendationsKey = key;
+
+      chipsEl.innerHTML = "";
+      items.forEach(text => {
+        const btn = document.createElement("button");
+        btn.className = "chip";
+        btn.textContent = text;
+        btn.addEventListener("click", () => {
+          inputEl.value = text;
+          autoResizeTextarea();
+          sendMessage();
+        });
+        chipsEl.appendChild(btn);
+      });
+    }
+
+    function updateUI(flashGauge = false) {
+      diamondCountEl.textContent = state.diamonds;
+      levelBadgeEl.textContent = getDisplayLevelName();
+
+      const percent = clamp(Math.round(state.progress), 0, 100);
+      gaugeFillEl.style.width = `${percent}%`;
+      gaugeLabelEl.textContent = `${percent}%`;
+
+      if (flashGauge) {
+        gaugeFillEl.classList.add("flash");
+        setTimeout(() => gaugeFillEl.classList.remove("flash"), 600);
+      }
+
+      applyVisualStage();
+    }
+
+    let toastTimer = null;
+    function showToast(text) {
+      clearTimeout(toastTimer);
+      toastEl.textContent = text;
+      toastEl.classList.add("show");
+      toastTimer = setTimeout(() => toastEl.classList.remove("show"), 1800);
+    }
+
+    function showPopup({ icon = "★", title, desc, rewardText = "" }) {
+      popupIconEl.textContent = icon;
+      popupTitleEl.textContent = title;
+      popupDescEl.textContent = desc;
+
+      if (rewardText) {
+        popupRewardEl.style.display = "inline-flex";
+        popupRewardEl.innerHTML = `<span class="diamond-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="12,2 22,8 12,22 2,8" fill="#6fd8ff"/>
+            <polygon points="12,2 22,8 12,8" fill="#aee9ff"/>
+            <polygon points="12,2 2,8 12,8" fill="#c8f3ff"/>
+            <polygon points="2,8 12,8 12,22" fill="#4fbfff"/>
+            <polygon points="22,8 12,8 12,22" fill="#5ad0ff"/>
+          </svg>
+        </span><span>${escapeHtml(rewardText)}</span>`;
+      } else {
+        popupRewardEl.style.display = "none";
+      }
+
+      popupLayerEl.classList.add("show");
+    }
+
+    popupCloseEl.addEventListener("click", () => {
+      popupLayerEl.classList.remove("show");
+    });
+
+    popupLayerEl.addEventListener("click", (e) => {
+      if (e.target === popupLayerEl) popupLayerEl.classList.remove("show");
+    });
+
+    function createSparkles(count = 18) {
+      const rect = diamondChipEl.getBoundingClientRect();
+      const appRect = appEl.getBoundingClientRect();
+
+      for (let i = 0; i < count; i++) {
+        const s = document.createElement("div");
+        s.className = "sparkle";
+
+        const startX = rect.left - appRect.left + rect.width / 2;
+        const startY = rect.top - appRect.top + rect.height / 2;
+
+        const dx = `${(Math.random() - 0.5) * 180}px`;
+        const dy = `${(Math.random() - 0.5) * 140 - 20}px`;
+
+        s.style.left = `${startX}px`;
+        s.style.top = `${startY}px`;
+        s.style.setProperty("--dx", dx);
+        s.style.setProperty("--dy", dy);
+        s.style.animationDelay = `${Math.random() * 0.15}s`;
+
+        sparkleLayerEl.appendChild(s);
+        setTimeout(() => s.remove(), 1300);
+      }
+    }
+
+    function tokenizeKorean(text) {
+      return text
+        .replace(/[^\w가-힣\s]/g, " ")
+        .split(/\s+/)
+        .map(word => word.trim())
+        .filter(word => word.length >= 2);
+    }
+
+    function extractMeaningfulKeyword(text) {
+      const stopwords = [
+        "오늘", "진짜", "그냥", "조금", "너무", "근데", "그리고", "나는", "루미", "이거", "저거",
+        "정말", "약간", "계속", "뭔가", "이제", "지금", "하면", "해서", "하는", "같아", "느낌", "생각"
+      ];
+
+      const words = tokenizeKorean(text).filter(word => !stopwords.includes(word));
+      if (!words.length) return "";
+
+      const priorityKeywords = [
+        "연습", "무대", "보컬", "안무", "표정", "데뷔", "평가", "팬", "직캠", "라이브", "센터", "실수",
+        "불안", "걱정", "악플", "루머", "컨디션", "고음", "화보", "컬래버", "월드투어", "글로벌"
+      ];
+
+      const priority = words.find(word => priorityKeywords.some(key => word.includes(key) || key.includes(word)));
+      return priority || words[0];
+    }
+
+    function buildKeywordEcho(text) {
+      const keyword = extractMeaningfulKeyword(text);
+      if (!keyword) return "";
+
+      const templates = [
+        `${keyword} 얘기 꺼내니까 괜히 더 신경 쓰여...`,
+        `${keyword} 쪽이 계속 마음에 남아...`,
+        `${keyword} 얘긴 나도 쉽게 넘기기 어렵더라...`
+      ];
+
+      return randomOf(templates);
+    }
+
+    function updateMemoryFromUserText(text, analysis) {
+      const keyword = extractMeaningfulKeyword(text);
+      if (keyword) {
+        state.memory.lastTopic = keyword;
+        state.memory.recentUserKeywords.unshift(keyword);
+        state.memory.recentUserKeywords = [...new Set(state.memory.recentUserKeywords)].slice(0, 5);
+
+        state.memory.favoriteKeywords.push(keyword);
+        state.memory.favoriteKeywords = state.memory.favoriteKeywords.slice(-12);
+      }
+
+      state.memory.lastEmotion = analysis.intent;
+      state.memory.intimacy = clamp(state.memory.intimacy + (analysis.intent === "comfort" || analysis.intent === "praise" ? 3 : 1), 0, 100);
+
+      if (analysis.intent === "comfort" || analysis.intent === "growth" || analysis.intent === "praise") {
+        state.memory.sharedMoments.unshift(text);
+        state.memory.sharedMoments = state.memory.sharedMoments.slice(0, 4);
+      }
+    }
+
+    function maybeReferenceMemory(currentText) {
+      const keyword = extractMeaningfulKeyword(currentText);
+      const lastTopic = state.memory.lastTopic;
+      if (!lastTopic) return "";
+      if (keyword && keyword === lastTopic) return "";
+      if (Math.random() > 0.45) return "";
+
+      const lines = [
+        `아까 ${lastTopic} 얘기한 것도 계속 남아 있었어...`,
+        `그리고 조금 전 ${lastTopic} 얘기도 자꾸 생각나...`
+      ];
+      return randomOf(lines);
+    }
+
+    function applyCharacterStyle(text) {
+      let styled = text
+        .replace(/\s+/g, " ")
+        .replace(/…/g, "...")
+        .trim();
+
+      styled = styled
+        .replace(/습니다\.?/g, "...")
+        .replace(/어요\.?/g, "어...")
+        .replace(/에요\.?/g, "야...");
+
+      if (!/[.!?…]$/.test(styled)) styled += "...";
+      styled = styled.replace(/\.{4,}/g, "...");
+      return styled;
+    }
+
+    function composeReplyParts(userText, analysis) {
+      const primary = applyCharacterStyle(generateCharacterReply(userText, analysis));
+      const parts = [primary];
+
+      const memoryLine = maybeReferenceMemory(userText);
+      if (memoryLine && Math.random() > 0.35) parts.push(applyCharacterStyle(memoryLine));
+
+      if (!state.currentEvent && Math.random() > 0.42) {
+        const followups = {
+          comfort: [
+            "오늘은 너무 혼자 버티지 않았으면 좋겠어...",
+            "조금만 더 얘기해주면, 나도 마음 정리해볼 수 있을 것 같아..."
+          ],
+          growth: [
+            "이번엔 진짜 흐름 놓치고 싶지 않아...",
+            "네가 그렇게 말해주면 조금 더 해볼 용기가 나..."
+          ],
+          praise: [
+            "그 말 들으면 괜히 더 잘하고 싶어져...",
+            "괜히 심장이 빨라져... 그래도 좋다..."
+          ],
+          question: [
+            "이런 얘기 물어봐주는 거, 생각보다 되게 고마워...",
+            "나도 조금 더 솔직하게 말해봐도 될 것 같아..."
+          ],
+          negative: [
+            "그래도 네 앞에선 완전히 무너지고 싶진 않아...",
+            "지금은 좀 흔들려도, 도망치고 싶진 않아..."
+          ],
+          neutral: [
+            "조금 더 같이 있어줄래...",
+            "네 말은 이상하게 오래 남아..."
+          ]
+        };
+
+        const pool = followups[analysis.intent] || followups.neutral;
+        parts.push(applyCharacterStyle(randomOf(pool)));
+      }
+
+      return parts.slice(0, 2);
+    }
+
+    function analyzeText(text) {
+      const normalized = text.trim().toLowerCase();
+      let positiveScore = 0;
+      let negativeScore = 0;
+
+      POSITIVE_WORDS.forEach(word => {
+        if (normalized.includes(word.toLowerCase())) positiveScore += 1;
+      });
+
+      NEGATIVE_WORDS.forEach(word => {
+        if (normalized.includes(word.toLowerCase())) negativeScore += 1;
+      });
+
+      if (normalized.includes("!")) positiveScore += 0.5;
+      if (normalized.includes("?")) negativeScore += 0.2;
+      if (normalized.length <= 5) negativeScore += 0.1;
+
+      let intent = "neutral";
+
+      if (includesAny(normalized, INTENT.giveup)) intent = "negative";
+      else if (includesAny(normalized, INTENT.comfort)) intent = "comfort";
+      else if (includesAny(normalized, INTENT.growth)) intent = "growth";
+      else if (includesAny(normalized, INTENT.praise)) intent = "praise";
+      else if (includesAny(normalized, INTENT.question)) intent = "question";
+      else if (positiveScore > negativeScore) intent = "growth";
+      else if (negativeScore > positiveScore) intent = "negative";
+
+      return { positiveScore, negativeScore, intent };
+    }
+
+    function applyConversationEffects(analysis) {
+      const { positiveScore, negativeScore, intent } = analysis;
+
+      let good = 0;
+      let bad = 0;
+      let progressDelta = 0;
+      let moodDelta = 0;
+
+      switch (intent) {
+        case "comfort":
+          good += 1;
+          progressDelta += 10;
+          moodDelta += 10;
+          break;
+        case "growth":
+          good += 1;
+          progressDelta += 12;
+          moodDelta += 8;
+          break;
+        case "praise":
+          good += 1;
+          progressDelta += 9;
+          moodDelta += 9;
+          break;
+        case "question":
+          progressDelta += 5;
+          moodDelta += 2;
+          break;
+        case "negative":
+          bad += 1;
+          progressDelta -= 10;
+          moodDelta -= 9;
+          break;
+        default:
+          progressDelta += 3;
+          moodDelta += 1;
+      }
+
+      if (positiveScore >= 2) {
+        good += 1;
+        progressDelta += 6;
+        moodDelta += 4;
+      }
+      if (negativeScore >= 2) {
+        bad += 1;
+        progressDelta -= 6;
+        moodDelta -= 4;
+      }
+
+      state.goodMoments += good;
+      state.badMoments += bad;
+      state.progress = clamp(state.progress + progressDelta, -100, 100);
+      state.moodScore = clamp(state.moodScore + moodDelta, -50, 60);
+
+      return { good, bad, intent };
+    }
+
+    function getFallScenario() {
+      if (state.levelIndex === 3 && !state.seenBadCases.convenienceStore) {
+        return {
+          stage: "convenienceStore",
+          title: "편의점 알바생",
+          preLine: randomOf([
+            "여기까지 왔는데도 한순간에 흐름이 끊길 수 있다는 게 너무 무서워... 내가 무대에서 밀려나는 소리가 들리는 것 같아.",
+            "인기 아이돌까지 왔는데도 버티지 못하면, 정말 평범한 일상으로 돌아가게 될까 봐 겁나..."
+          ]),
+          postLine: randomOf([
+            "...결국 아이돌 활동을 잠시 멈추고 편의점에서 일하게 됐어. 사람들 사이에 섞여 있는데도 내가 비어 있는 느낌이야.",
+            "지금은 편의점 알바생이야... 무대 의상 대신 유니폼을 입고 있으니까, 내가 잠깐 멈춰 선 사람처럼 느껴져."
+          ]),
+          popupDesc: `${state.characterName}가 아이돌 활동을 잠시 멈추고 평범한 삶으로 내려왔어요.
+그래도 다시 시작할 가능성은 아직 남아 있어요.`,
+          progress: 28,
+          moodPenalty: 12,
+          toast: "배드케이스: 편의점 알바생",
+          recoverLevelIndex: 0,
+          recoverProgress: 38,
+          recoverTitle: "다시 연습생으로 시작",
+          recoverDesc: `${state.characterName}가 평범한 일상 속에서도 무대를 포기하지 않았어요.
+다시 Level 1. 연습생부터 천천히 시작합니다.`,
+          recoverToast: "Level 1. 연습생부터 다시 시작해요"
+        };
+      }
+
+      if (state.levelIndex === 1 && !state.seenBadCases.backToTrainee) {
+        return {
+          stage: "backToTrainee",
+          title: "연습생으로 하락",
+          preLine: randomOf([
+            "겨우 데뷔조까지 왔는데 여기서 밀리면 다시 처음으로 돌아갈 것 같아... 그 생각이 자꾸 숨을 막히게 해.",
+            "데뷔조 자리에서 흔들리니까 더 초라해져... 다시 일반 연습생이 되면 버틸 수 있을지 모르겠어."
+          ]),
+          postLine: randomOf([
+            "...결국 데뷔조에서 탈락하고 다시 일반 연습생이 됐어. 붙잡았던 꿈이 손에서 미끄러진 느낌이야.",
+            "다시 연습생이 됐어... 데뷔조였던 시간이 꿈처럼 사라져서 더 멍해."
+          ]),
+          popupDesc: `${state.characterName}가 데뷔조에서 탈락하고 다시 일반 연습생이 됐어요.
+속상하지만 여기서 다시 올라갈 수 있어요.`,
+          progress: 34,
+          moodPenalty: 9,
+          toast: "배드케이스: 연습생",
+          recoverLevelIndex: 1,
+          recoverProgress: 52,
+          recoverTitle: "다시 데뷔조 발탁",
+          recoverDesc: `${state.characterName}가 다시 실력을 증명하며 Level 2. 데뷔조 발탁까지 회복했어요.`,
+          recoverToast: "Level 2. 데뷔조 발탁으로 복귀했어요"
+        };
+      }
+
+      return null;
+    }
+
+    function getLevelUpDesc(levelName) {
+      const map = {
+        "Level 2. 데뷔조 발탁": "루미가 드디어 데뷔조에 발탁됐어요.\n배경과 프로필 이미지가 새로운 단계에 맞게 변경됩니다.",
+        "Level 3. 신인 아이돌": "루미가 신인 아이돌 단계에 진입했어요.\n무대를 통해 자기 색을 보여주는 감각이 점점 살아나고 있어요.",
+        "Level 4. 인기 아이돌": "루미가 인기 아이돌 단계에 올랐어요.\n팬 반응과 무대 존재감을 스스로 끌어올리는 힘이 생기고 있어요.",
+        "Level 5. 월클 아이돌": "루미가 마침내 월클 아이돌 단계에 도달했어요.\n이제는 더 넓은 무대와 더 큰 꿈을 당당하게 바라볼 수 있어요."
+      };
+      return map[levelName] || "루미가 한 단계 성장했어요.";
+    }
+
+    function checkLevelTransitions() {
+      if (state.progress < 0 && state.fallStage === "none") {
+        const scenario = getFallScenario();
+
+        if (scenario) {
+          state.fallStage = scenario.stage;
+          state.seenBadCases[scenario.stage] = true;
+          state.levelIndex = 0;
+          state.progress = scenario.progress;
+          state.moodScore = clamp(state.moodScore - scenario.moodPenalty, -50, 60);
+
+          applyVisualStage();
+
+          heroCardEl.classList.add("shake");
+          setTimeout(() => heroCardEl.classList.remove("shake"), 420);
+
+          showPopup({
+            icon: "↓",
+            title: scenario.title,
+            desc: scenario.popupDesc,
+            rewardText: ""
+          });
+          showToast(scenario.toast);
+          scheduleCharacterReply([scenario.preLine, scenario.postLine], 220);
+          return;
+        }
+
+        if (state.levelIndex > 0) {
+          const previousLevelName = state.levels[state.levelIndex].name;
+          state.levelIndex -= 1;
+          state.progress = 32;
+          state.moodScore = clamp(state.moodScore - 6, -50, 60);
+          applyVisualStage();
+          showToast(`${previousLevelName}에서 한 단계 하락했어요`);
+          scheduleCharacterReply([
+            "...이번엔 흐름을 놓친 것 같아. 바로 다시 붙잡지 않으면 더 멀어질 것 같아.",
+            `지금은 ${state.levels[state.levelIndex].name}에서 다시 버텨야 해... 그래도 여기서 멈추고 싶진 않아.`
+          ], 220);
+          return;
+        }
+
+        state.progress = 0;
+      }
+
+      if (state.fallStage !== "none" && state.progress >= 100) {
+        const scenario = state.fallStage === "convenienceStore"
+          ? {
+              recoverLevelIndex: 0,
+              recoverProgress: 38,
+              recoverTitle: "다시 연습생으로 시작",
+              recoverDesc: `${state.characterName}가 평범한 일상 속에서도 무대를 포기하지 않았어요.
+다시 Level 1. 연습생부터 천천히 시작합니다.`,
+              recoverToast: "Level 1. 연습생부터 다시 시작해요",
+              lines: [
+                "알바 끝나고 돌아오는 길에 다시 연습실 생각이 났어... 이번엔 Level 1부터 다시 밟아볼래.",
+                "멀리 돌아왔지만, 다시 연습생으로 시작할 용기는 남아 있었어..."
+              ]
+            }
+          : {
+              recoverLevelIndex: 1,
+              recoverProgress: 52,
+              recoverTitle: "다시 데뷔조 발탁",
+              recoverDesc: `${state.characterName}가 다시 실력을 증명하며 Level 2. 데뷔조 발탁까지 회복했어요.`,
+              recoverToast: "Level 2. 데뷔조 발탁으로 복귀했어요",
+              lines: [
+                "다시 연습생으로 버티던 시간이 헛되지 않았나 봐... 다시 데뷔조 이름을 들었어.",
+                "이번엔 놓치고 싶지 않아... 다시 데뷔조 발탁부터 제대로 올라가볼래."
+              ]
+            };
+
+        state.levelIndex = scenario.recoverLevelIndex;
+        state.progress = scenario.recoverProgress;
+        state.fallStage = "none";
+        state.moodScore = clamp(state.moodScore + 10, -50, 60);
+        applyVisualStage();
+        showPopup({
+          icon: "↺",
+          title: scenario.recoverTitle,
+          desc: scenario.recoverDesc,
+          rewardText: "재도전 시작"
+        });
+        showToast(scenario.recoverToast);
+        scheduleCharacterReply(scenario.lines, 260);
+        return;
+      }
+
+      if (state.progress >= 100 && state.levelIndex < state.levels.length - 1) {
+        state.progress = state.progress - 100;
+        state.levelIndex += 1;
+
+        const reward = state.levels[state.levelIndex].reward;
+        state.diamonds += reward;
+
+        applyVisualStage();
+
+        heroCardEl.classList.add("level-boost");
+        setTimeout(() => heroCardEl.classList.remove("level-boost"), 900);
+
+        createSparkles(24);
+        showPopup({
+          icon: "⬆",
+          title: "레벨 업!",
+          desc: getLevelUpDesc(state.levels[state.levelIndex].name),
+          rewardText: `+${reward} 다이아 획득`
+        });
+        showToast(`레벨 업! ${state.levels[state.levelIndex].name}`);
+        addMessage("system", `${state.characterName}가 ${state.levels[state.levelIndex].name} 단계로 성장했어요!`);
+      }
+    }
+
+    function maybeTriggerEvent() {
+      if (state.currentEvent) return;
+      if (state.messageCount < 2) return;
+
+      const chance = Math.random();
+      if (chance > 0.36) return;
+
+      const sourceEvents = state.fallStage === "convenienceStore"
+        ? CONVENIENCE_STORE_EVENTS
+        : EVENTS.filter(event => event.level === state.levelIndex);
+      const available = sourceEvents.filter(event => !hasSeenEvent(event.id));
+      if (!available.length) return;
+
+      const eventTypeBias = Math.random() < 0.5 ? "good" : "bad";
+      const typeMatched = available.filter(event => event.type === eventTypeBias || (eventTypeBias === "good" && event.type === "special"));
+      const event = randomOf(typeMatched.length ? typeMatched : available);
+
+      markEventSeen(event.id);
+      state.currentEvent = event;
+
+      eventTagEl.className = "event-tag";
+      if (event.type === "good") eventTagEl.classList.add("good");
+      if (event.type === "bad") eventTagEl.classList.add("bad");
+      if (event.type === "special") eventTagEl.classList.add("special");
+
+      eventTagEl.textContent =
+        event.type === "good" ? "GROWTH EVENT" :
+        event.type === "bad" ? "CRISIS EVENT" :
+        "SPECIAL EVENT";
+
+      eventTitleEl.textContent = event.title;
+      eventDescEl.textContent = event.desc;
+      eventTimerEl.textContent = "이벤트 진행 중";
+      eventCardEl.classList.add("show");
+
+      scheduleCharacterReply([randomOf(event.intro), Math.random() > 0.55 ? "네 생각 먼저 듣고 싶어..." : ""].filter(Boolean), 650);
+      renderChips(pickUnique(event.recommendations, 4));
+      showToast("랜덤 이벤트 발생!");
+    }
+
+    function resolveEvent(userText) {
+      if (!state.currentEvent) return false;
+
+      const result = state.currentEvent.resolve(userText);
+
+      state.goodMoments += result.good;
+      state.badMoments += result.bad;
+      state.diamonds += result.diamonds;
+      state.progress = clamp(
+        state.progress + (result.good * 10) - (result.bad * 9) + (result.diamonds > 0 ? 5 : 0),
+        -100, 100
+      );
+      state.moodScore = clamp(
+        state.moodScore + (result.good * 8) - (result.bad * 8) + (result.diamonds > 0 ? 3 : 0),
+        -50, 60
+      );
+
+      if (result.diamonds > 0) createSparkles(18);
+
+      scheduleCharacterReply([applyCharacterStyle(result.reply), Math.random() > 0.5 ? applyCharacterStyle("이번 선택, 나한텐 꽤 크게 남을 것 같아...") : ""].filter(Boolean), 620);
+      if (result.toast) showToast(result.toast);
+
+      addMessage("system", `${state.currentEvent.title} 종료`);
+      state.currentEvent = null;
+      eventCardEl.classList.remove("show");
+
+      updateUI(true);
+      checkLevelTransitions();
+      updateRecommendations();
+
+      return true;
+    }
+
+    function generateCharacterReply(userText, analysis) {
+      const toneGroup = getToneGroup();
+      const toneSet = TONE_LINES[toneGroup];
+
+      let replyPool = toneSet.neutral;
+
+      switch (analysis.intent) {
+        case "comfort":
+          replyPool = toneSet.comfort;
+          break;
+        case "growth":
+          replyPool = toneSet.growth;
+          break;
+        case "praise":
+          replyPool = toneSet.praise;
+          break;
+        case "question":
+          replyPool = toneSet.question;
+          break;
+        case "negative":
+          replyPool = toneSet.negative;
+          break;
+      }
+
+      const segments = [];
+      const keywordEcho = buildKeywordEcho(userText);
+      if (keywordEcho) segments.push(keywordEcho);
+
+      let coreReply = randomOf(replyPool);
+
+      if (analysis.intent === "question" && includesAny(userText, ["팬", "반응"])) {
+        coreReply += " 반응이 신경 쓰이긴 하지만, 이제는 조금 기대하게 되는 것 같아.";
+      }
+
+      if (analysis.intent === "question" && includesAny(userText, ["오늘", "연습"])) {
+        coreReply += " 특히 표정이랑 호흡에서 더 잡아야 할 부분이 보였어.";
+      }
+
+      if (analysis.intent === "praise" && state.levelIndex >= 2) {
+        coreReply += " 다음엔 더 자신 있게 보여줄게.";
+      }
+
+      if (analysis.intent === "growth" && state.levelIndex >= 3) {
+        coreReply += " 이제는 더 큰 무대도 욕심내보고 싶어.";
+      }
+
+      if (analysis.intent === "negative" && state.moodScore < -15) {
+        coreReply += " 그래도... 완전히 포기하고 싶진 않아.";
+      }
+
+      if (state.fallStage === "backToTrainee" && analysis.intent === "comfort") {
+        coreReply += " 다시 일반 연습생이 됐어도, 이번엔 데뷔조까지 꼭 다시 올라가볼래.";
+      }
+
+      if (state.fallStage === "convenienceStore" && analysis.intent === "growth") {
+        coreReply += " 아이돌을 잠시 멈췄어도, 다시 Level 1부터 차근차근 올라가볼게.";
+      }
+
+      const pendingFallScenario = getFallScenario();
+      if (state.progress <= 8 && state.progress >= 0 && state.fallStage === "none" && pendingFallScenario) {
+        coreReply += ` ${pendingFallScenario.preLine}`;
+      }
+
+      if (state.memory.intimacy >= 24 && Math.random() > 0.45) {
+        coreReply += " 너한텐 조금 더 솔직하게 말하게 돼.";
+      }
+
+      segments.push(coreReply);
+
+      return applyCharacterStyle(segments.join(" "));
+    }
+
+    function scheduleCharacterReply(text, delay = 700, options = {}) {
+      const parts = Array.isArray(text) ? text.filter(Boolean) : [text].filter(Boolean);
+      if (!parts.length) return;
+
+      let totalDelay = Math.max(250, delay + Math.floor(Math.random() * 240));
+      typingIndicator.classList.add("show");
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      parts.forEach((part, index) => {
+        const cleanPart = applyCharacterStyle(part);
+        const partDelay = totalDelay + index * (620 + Math.floor(Math.random() * 260));
+
+        setTimeout(() => {
+          addMessage("character", cleanPart, { meta: options.meta || null });
+          messagesEl.scrollTop = messagesEl.scrollHeight;
+
+          const isLast = index === parts.length - 1;
+          if (isLast) {
+            typingIndicator.classList.remove("show");
+          }
+        }, partDelay);
+      });
+    }
+
+    function updateRecommendations() {
+      if (state.currentEvent) {
+        renderChips(pickUnique(state.currentEvent.recommendations, 4));
+        return;
+      }
+
+      const lastIntent = getLastIntent();
+      const lastUserMessage = getLastUserMessage();
+      let pool = [];
+
+      if (state.progress <= 18 || state.badMoments >= state.goodMoments + 1) {
+        pool.push(...RECOMMENDATION_POOLS.fallBefore);
+      }
+
+      if (state.fallStage === "backToTrainee") {
+        pool.push(...RECOMMENDATION_POOLS.bad1, ...RECOMMENDATION_POOLS.sadness);
+      }
+
+      if (state.fallStage === "convenienceStore") {
+        pool.push(...RECOMMENDATION_POOLS.bad2, ...RECOMMENDATION_POOLS.sadness);
+      }
+
+      if (state.messageCount <= 1) pool.push(...RECOMMENDATION_POOLS.start);
+      if (state.moodScore <= -18) pool.push(...RECOMMENDATION_POOLS.lowMood);
+      if (state.moodScore > -18 && state.moodScore < 10) pool.push(...RECOMMENDATION_POOLS.recovery);
+
+      if (lastIntent === "question") pool.push(...RECOMMENDATION_POOLS.question);
+      if (lastIntent === "comfort" || lastIntent === "negative") pool.push(...RECOMMENDATION_POOLS.lowMood, ...RECOMMENDATION_POOLS.recovery);
+      if (lastIntent === "praise") pool.push(...RECOMMENDATION_POOLS.praise);
+      if (lastIntent === "growth") pool.push(...RECOMMENDATION_POOLS.praise);
+
+      if (state.levelIndex === 0) pool.push(...RECOMMENDATION_POOLS.level1);
+      if (state.levelIndex === 1) pool.push(...RECOMMENDATION_POOLS.level2);
+      if (state.levelIndex === 2) pool.push(...RECOMMENDATION_POOLS.level3);
+      if (state.levelIndex === 3) pool.push(...RECOMMENDATION_POOLS.level4);
+      if (state.levelIndex === 4) pool.push(...RECOMMENDATION_POOLS.level5);
+
+      if (includesAny(lastUserMessage, ["연습", "오늘"])) {
+        pool.push(
+          "오늘 연습에서 가장 아쉬웠던 건 뭐야?",
+          "오늘은 어떤 부분이 조금 나아졌어?",
+          "연습하면서 제일 떨렸던 순간은 언제였어?",
+          "오늘 감정이 올라간 지점이 있었어?"
+        );
+      }
+
+      if (includesAny(lastUserMessage, ["실수", "망", "불안", "걱정", "슬퍼", "울", "하락", "내려", "알바"])) {
+        pool.push(
+          "실수는 성장 과정에 꼭 있는 장면이야",
+          "지금은 결과보다 회복이 먼저야",
+          "불안할수록 더 천천히 가보자",
+          "한 장면 때문에 전체를 판단하지 말자",
+          "속상해도 다시 올라갈 수 있게 오늘을 버텨보자",
+          "지금 슬픈 마음부터 천천히 안아주자"
+        );
+      }
+
+      if (includesAny(lastUserMessage, ["데뷔", "평가", "발탁"])) {
+        pool.push(
+          "이번 평가가 네 흐름을 바꿀 수 있어",
+          "데뷔조 발탁, 충분히 가능해 보여",
+          "이번엔 피하지 말고 보여주자",
+          "네 이름이 불릴 만한 준비가 돼 있어"
+        );
+      }
+
+      if (includesAny(lastUserMessage, ["팬", "직캠", "인기"])) {
+        pool.push(
+          "팬들이 네 매력을 보기 시작한 거야",
+          "지금 반응은 네가 만든 결과야",
+          "좋은 반응을 자신감으로 바꿔보자",
+          "이 흐름이면 더 큰 반응도 가능해"
+        );
+      }
+
+      if (includesAny(lastUserMessage, ["월클", "글로벌", "해외"])) {
+        pool.push(
+          "이번엔 크게 꿈꿔도 괜찮아",
+          "글로벌 무대도 충분히 어울릴 수 있어",
+          "네 가능성을 더 넓게 보자",
+          "월클은 먼 얘기만은 아닐 수도 있어"
+        );
+      }
+
+      if (pool.length < 4) {
+        pool.push(
+          ...RECOMMENDATION_POOLS.start,
+          ...RECOMMENDATION_POOLS.question,
+          ...RECOMMENDATION_POOLS.level1,
+          ...RECOMMENDATION_POOLS.level2,
+          ...RECOMMENDATION_POOLS.level3
+        );
+      }
+
+      renderChips(pickUnique(pool, 4));
+    }
+
+    function autoResizeTextarea() {
+      const maxHeight = 92;
+      inputEl.style.height = "46px";
+      inputEl.style.height = Math.min(inputEl.scrollHeight, maxHeight) + "px";
+      inputEl.style.overflowY = inputEl.scrollHeight > maxHeight ? "auto" : "hidden";
+      sendBtn.disabled = inputEl.value.trim().length === 0;
+    }
+
+    inputEl.addEventListener("input", autoResizeTextarea);
+
+    function sendMessage() {
+      const text = inputEl.value.trim();
+      if (!text || state.isSending) return;
+
+      state.isSending = true;
+      sendBtn.disabled = true;
+
+      addMessage("user", text);
+      inputEl.value = "";
+      autoResizeTextarea();
+      state.messageCount += 1;
+
+      const releaseSendingLock = (delay = 220) => {
+        setTimeout(() => {
+          state.isSending = false;
+          sendBtn.disabled = inputEl.value.trim().length === 0;
+        }, delay);
+      };
+
+      const eventHandled = resolveEvent(text);
+      if (eventHandled) {
+        updateRecommendations();
+        releaseSendingLock();
+        return;
+      }
+
+      const analysis = analyzeText(text);
+      updateMemoryFromUserText(text, analysis);
+      const result = applyConversationEffects(analysis);
+      state.history[state.history.length - 1].meta = { intent: analysis.intent, keyword: state.memory.lastTopic || "" };
+
+      if (result.good > 0 && result.bad === 0) showToast(`좋은 순간 +${result.good}`);
+      else if (result.bad > 0 && result.good === 0) showToast(`나쁜 순간 +${result.bad}`);
+      else if (result.good > 0 && result.bad > 0) showToast(`좋은 순간 +${result.good}, 나쁜 순간 +${result.bad}`);
+
+      updateUI(true);
+
+      const replyParts = composeReplyParts(text, analysis);
+      const mergedReply = Array.isArray(replyParts)
+        ? replyParts.filter(Boolean).join(" ")
+        : replyParts;
+      scheduleCharacterReply(mergedReply, 650, { meta: { intent: analysis.intent } });
+
+      setTimeout(() => {
+        checkLevelTransitions();
+        updateUI();
+        updateRecommendations();
+        maybeTriggerEvent();
+        releaseSendingLock();
+      }, 740);
+    }
+
+    sendBtn.addEventListener("click", sendMessage);
+    inputEl.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    function init() {
+      applyVisualStage();
+      updateUI();
+      autoResizeTextarea();
+
+      addMessage("system", "루미와의 육성 채팅이 시작되었어요. 좋은 순간을 쌓아 Level 5. 월클 아이돌까지 성장시켜 보세요.");
+
+      setTimeout(() => addMessage("character", "안녕, 나는 연습생 루미야."), 280);
+      setTimeout(() => addMessage("character", "드디어 데뷔조 테스트가 눈앞이야…"), 760);
+      setTimeout(() => {
+        scheduleCharacterReply(["그런데 이상하게, 설렘보다 떨림이 더 커. 이 순간… 나, 어떻게 해야 끝까지 해낼 수 있을까?"], 180);
+        updateRecommendations();
+      }, 1250);
+    }
+
+    init();
+  </script>
+</body>
+</html>
